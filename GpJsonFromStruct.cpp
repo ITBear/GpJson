@@ -1,5 +1,7 @@
 #include "GpJsonFromStruct.hpp"
 
+#define RAPIDJSON_ASSERT(X) THROW_GPE_COND_CHECK_M(X, "Json processing error");
+
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
@@ -11,16 +13,24 @@ std::string GpJsonFromStruct::SToString (const rapidjson::Document& aJsonDOM)
     rapidjson::Writer<rapidjson::StringBuffer>  writer(buffer);
     aJsonDOM.Accept(writer);
 
-    return buffer.GetString();
+    return std::string(buffer.GetString(), buffer.GetSize());
+}
+
+void    GpJsonFromStruct::SToString (const rapidjson::Document& aJsonDOM,
+                                     GpByteWriter&              aWriter)
+{
+    aWriter.Bytes(SToString(aJsonDOM));
 }
 
 void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
                                   rapidjson::Document::GenericValue&    aJsonObject,
-                                  rapidjson::Document::AllocatorType&   aJsonAllocator)
+                                  rapidjson::Document::AllocatorType&   aJsonAllocator,
+                                  const size_t                          aFlags)
 {
     const GpTypeStructInfo& structInfo  = aStruct.TypeStructInfo();
     const auto&             props       = structInfo.Props();
 
+    if (aFlags & size_t(Flags::WRITE_STRUCT_UID))
     {
         const std::string structUidStr = structInfo.UID().ToString();
         rapidjson::Value n, v;
@@ -37,10 +47,10 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
         {
             if (containerType == GpTypeContainer::NO)
             {
-                SWriteValue(aStruct, propInfo, aJsonObject, aJsonAllocator);
+                SWriteValue(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
             } else if (containerType == GpTypeContainer::VECTOR)
             {
-                SWriteValueVec(aStruct, propInfo, aJsonObject, aJsonAllocator);
+                SWriteValueVec(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
             } else if (containerType == GpTypeContainer::LIST)
             {
                 THROW_NOT_IMPLEMENTED();
@@ -65,7 +75,8 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
 void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStruct,
                                        const GpTypePropInfo&                aPropInfo,
                                        rapidjson::Document::GenericValue&   aJsonObject,
-                                       rapidjson::Document::AllocatorType&  aJsonAllocator)
+                                       rapidjson::Document::AllocatorType&  aJsonAllocator,
+                                       const size_t                         aFlags)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();
@@ -140,7 +151,7 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
         {
             const GpTypeStructBase&             structBase  = aPropInfo.Value_Struct(aStruct);
             rapidjson::Document::GenericValue&  obj         = jsonMemberValue.SetObject();
-            SWrite(structBase, obj, aJsonAllocator);
+            SWrite(structBase, obj, aJsonAllocator, aFlags);
         } break;
         case GpType::STRUCT_SP:
         {
@@ -153,7 +164,7 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
             {
                 const GpTypeStructBase&             structBase  = structBaseSP.VCn();
                 rapidjson::Document::GenericValue&  obj         = jsonMemberValue.SetObject();
-                SWrite(structBase, obj, aJsonAllocator);
+                SWrite(structBase, obj, aJsonAllocator, aFlags);
             }
         } break;
         case GpType::ENUM:
@@ -177,7 +188,8 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
 void    GpJsonFromStruct::SWriteValueVec (const GpTypeStructBase&               aStruct,
                                           const GpTypePropInfo&                 aPropInfo,
                                           rapidjson::Document::GenericValue&    aJsonObject,
-                                          rapidjson::Document::AllocatorType&   aJsonAllocator)
+                                          rapidjson::Document::AllocatorType&   aJsonAllocator,
+                                          const size_t                          aFlags)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();
@@ -363,7 +375,7 @@ void    GpJsonFromStruct::SWriteValueVec (const GpTypeStructBase&               
                 {
                     const GpTypeStructBase&             structBase  = e.VCn();
                     rapidjson::Document::GenericValue&  obj         = jv.SetObject();
-                    SWrite(structBase, obj, aJsonAllocator);
+                    SWrite(structBase, obj, aJsonAllocator, aFlags);
                 }
 
                 jsonArray.PushBack(jv.Move(), aJsonAllocator);

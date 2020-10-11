@@ -2,6 +2,534 @@
 
 namespace GPlatform {
 
+class _PreprocVec
+{
+public:
+    template<typename T>
+    static void SProc(GpVector<T>& aVec, const size_t aSize)
+    {
+        aVec.clear();
+        aVec.reserve(aSize);
+    }
+};
+
+class _PreprocList
+{
+public:
+    template<typename T>
+    static void SProc(GpList<T>& aVec, const size_t /*aSize*/)
+    {
+        aVec.clear();
+    }
+};
+
+class _PreprocSet
+{
+public:
+    template<typename T>
+    static void SProc(GpSet<T>& aVec, const size_t /*aSize*/)
+    {
+        aVec.clear();
+    }
+};
+
+class _InserterVec
+{
+public:
+    template<typename T, typename... Ts>
+    static void SInsert(GpVector<T>& aVec, Ts&&... aArgs)
+    {
+        aVec.emplace_back(std::forward<Ts>(aArgs)...);
+    }
+};
+
+class _InserterList
+{
+public:
+    template<typename T, typename... Ts>
+    static void SInsert(GpList<T>& aVec, Ts&&... aArgs)
+    {
+        aVec.emplace_back(std::forward<Ts>(aArgs)...);
+    }
+};
+
+class _InserterSet
+{
+public:
+    template<typename T, typename... Ts>
+    static void SInsert(GpSet<T>& aVec, Ts&&... aArgs)
+    {
+        aVec.insert(std::forward<Ts>(aArgs)...);
+    }
+};
+
+
+template<typename Prepocessor,
+         typename Inserter,
+         typename ValGetter>
+void    _ReadContainer (GpTypeStructBase&                           aStruct,
+                        const GpTypePropInfo&                       aPropInfo,
+                        const rapidjson::Document::ConstObject&     aJsonObject)
+{
+    const GpType::EnumT propType = aPropInfo.Type();
+    std::string_view    propName = aPropInfo.Name();
+
+    //Find json member
+    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(rapidjson::Document::ValueType(propName.data(),
+                                                                                                         NumOps::SConvert<rapidjson::SizeType>(propName.size())));
+
+    if (   (mit == aJsonObject.MemberEnd())
+        || (mit->value.IsNull()))
+    {
+        return;
+    }
+
+    const auto& mitVal = mit->value;
+
+    THROW_GPE_COND_CHECK_M(mitVal.IsArray(), "Json value '"_sv + propName + "' must be array"_sv);
+
+    rapidjson::Document::ConstArray array       = mitVal.GetArray();
+    const size_t                    arraySize   = array.Size();
+
+    switch (propType)
+    {
+        case GpType::U_INT_8:
+        {
+            auto& container = ValGetter::UInt8(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<u_int_8>(v.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_8:
+        {
+            auto& container = ValGetter::SInt8(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<s_int_8>(v.GetInt64()));
+            }
+        } break;
+        case GpType::U_INT_16:
+        {
+            auto& container = ValGetter::UInt16(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<u_int_16>(v.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_16:
+        {
+            auto& container = ValGetter::SInt16(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<s_int_16>(v.GetInt64()));
+            }
+        } break;
+        case GpType::U_INT_32:
+        {
+            auto& container = ValGetter::UInt32(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<u_int_32>(v.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_32:
+        {
+            auto& container = ValGetter::SInt32(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<s_int_32>(v.GetInt64()));
+            }
+        } break;
+        case GpType::U_INT_64:
+        {
+            auto& container = ValGetter::UInt64(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<u_int_64>(v.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_64:
+        {
+            auto& container = ValGetter::SInt64(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<s_int_64>(v.GetInt64()));
+            }
+        } break;
+        case GpType::DOUBLE:
+        {
+            auto& container = ValGetter::Double(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<double>(v.GetDouble()));
+            }
+        } break;
+        case GpType::FLOAT:
+        {
+            auto& container = ValGetter::Float(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, NumOps::SConvert<float>(v.GetDouble()));
+            }
+        } break;
+        case GpType::BOOLEAN:
+        {
+            auto& container = ValGetter::Bool(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, v.GetBool());
+            }
+        } break;
+        case GpType::UUID:
+        {
+            auto& container = ValGetter::UUID(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, GpUUID::SFromString({v.GetString(), v.GetStringLength()}));
+            }
+        } break;
+        case GpType::STRING:
+        {
+            auto& container = ValGetter::String(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                Inserter::SInsert(container, std::string(v.GetString(), v.GetStringLength()));
+            }
+        } break;
+        case GpType::BLOB:
+        {
+            auto& container = ValGetter::BLOB(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+            for (const auto& v: array)
+            {
+                GpRawPtrCharR strPtr(v.GetString(), v.GetStringLength());
+                Inserter::SInsert(container, GpStringOps::SToBytes(strPtr));
+            }
+        } break;
+        case GpType::STRUCT:
+        {
+            THROW_GPE("Arrays of struct are not supported, use arrays of struct::SP instead"_sv);
+        } break;
+        case GpType::STRUCT_SP:
+        {
+            auto& container = ValGetter::StructSP(aStruct, aPropInfo);
+            Prepocessor::SProc(container, arraySize);
+
+            const GpTypeStructInfo& structInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+
+            for (const auto& v: array)
+            {
+                const rapidjson::Document::ConstObject& jsonObject      = v.GetObject();
+                const GpTypeStructInfo&                 structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                GpTypeStructBase::SP                    structBaseSP    = structInfoJson.NewInstance();
+                GpTypeStructBase&                       structBase      = structBaseSP.Vn();
+                GpJsonToStruct::SReadStruct(structBase, jsonObject);
+
+                Inserter::SInsert(container, std::move(structBaseSP));
+            }
+        } break;
+        case GpType::ENUM:
+        {
+            THROW_GPE("Arrays of enums are not supported"_sv);
+        } break;
+        case GpType::NOT_SET:
+        {
+            THROW_GPE("Type "_sv + GpType::SToString(aPropInfo.Type()));
+        } break;
+        default:
+        {
+            THROW_GPE("Unsupported type "_sv + GpType::SToString(aPropInfo.Type()));
+        }
+    }
+}
+
+template<typename T>
+T   _ReadMapKey (std::string_view aValue)
+{
+    constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
+
+    if constexpr (type == GpType::U_INT_8)
+    {
+        return NumOps::SConvert<u_int_8>(GpStringOps::SToUI64(aValue));
+    } else if constexpr (type == GpType::S_INT_8)
+    {
+        return NumOps::SConvert<s_int_8>(GpStringOps::SToSI64(aValue));
+    } else if constexpr (type == GpType::U_INT_16)
+    {
+        return NumOps::SConvert<u_int_16>(GpStringOps::SToUI64(aValue));
+    } else if constexpr (type == GpType::S_INT_16)
+    {
+        return NumOps::SConvert<s_int_16>(GpStringOps::SToSI64(aValue));
+    } else if constexpr (type == GpType::U_INT_32)
+    {
+        return NumOps::SConvert<u_int_32>(GpStringOps::SToUI64(aValue));
+    } else if constexpr (type == GpType::S_INT_32)
+    {
+        return NumOps::SConvert<s_int_32>(GpStringOps::SToSI64(aValue));
+    } else if constexpr (type == GpType::U_INT_64)
+    {
+        return NumOps::SConvert<u_int_64>(GpStringOps::SToUI64(aValue));
+    } else if constexpr (type == GpType::S_INT_64)
+    {
+        return NumOps::SConvert<s_int_64>(GpStringOps::SToSI64(aValue));
+    } else if constexpr (type == GpType::DOUBLE)
+    {
+        return GpStringOps::SToDouble_fast(aValue);
+    } else if constexpr (type == GpType::FLOAT)
+    {
+        return NumOps::SConvert<float>(GpStringOps::SToDouble_fast(aValue));
+    } else if constexpr (type == GpType::BOOLEAN)
+    {
+        GpThrowCe<std::out_of_range>("Bool as map key are not supported");
+    } else if constexpr (type == GpType::UUID)
+    {
+        return GpUUID::SFromString(aValue);
+    } else if constexpr (type == GpType::STRING)
+    {
+        return std::string(aValue);
+    } else if constexpr (type == GpType::BLOB)
+    {
+        return GpStringOps::SToBytes(aValue);
+    } else if constexpr (type == GpType::STRUCT)
+    {
+        GpThrowCe<std::out_of_range>("Struct as map key are not supported");
+    } else if constexpr (type == GpType::STRUCT_SP)
+    {
+        GpThrowCe<std::out_of_range>("Struct SP as map key are not supported");
+    } else if constexpr (type == GpType::ENUM)
+    {
+        GpThrowCe<std::out_of_range>("Enum as map key are not supported");
+    } else
+    {
+        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'");
+    }
+}
+
+template<typename                       Key,
+         template<typename...> class    ValGetter>
+void    _ReadMap    (GpTypeStructBase&                          aStruct,
+                     const GpTypePropInfo&                      aPropInfo,
+                     const rapidjson::Document::ConstObject&    aJsonObject)
+{
+    const GpType::EnumT propType = aPropInfo.Type();
+
+    switch (propType)
+    {
+        case GpType::U_INT_8:
+        {
+            auto& container = ValGetter<Key>::UInt8(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<u_int_8>(value.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_8:
+        {
+            auto& container = ValGetter<Key>::SInt8(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<s_int_8>(value.GetInt64()));
+            }
+        } break;
+        case GpType::U_INT_16:
+        {
+            auto& container = ValGetter<Key>::UInt16(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<u_int_16>(value.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_16:
+        {
+            auto& container = ValGetter<Key>::SInt16(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<s_int_16>(value.GetInt64()));
+            }
+        } break;
+        case GpType::U_INT_32:
+        {
+            auto& container = ValGetter<Key>::UInt32(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<u_int_32>(value.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_32:
+        {
+            auto& container = ValGetter<Key>::SInt32(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<s_int_32>(value.GetInt64()));
+            }
+        } break;
+        case GpType::U_INT_64:
+        {
+            auto& container = ValGetter<Key>::UInt64(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<u_int_64>(value.GetUint64()));
+            }
+        } break;
+        case GpType::S_INT_64:
+        {
+            auto& container = ValGetter<Key>::SInt64(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<s_int_64>(value.GetInt64()));
+            }
+        } break;
+        case GpType::DOUBLE:
+        {
+            auto& container = ValGetter<Key>::Double(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<double>(value.GetDouble()));
+            }
+        } break;
+        case GpType::FLOAT:
+        {
+            auto& container = ValGetter<Key>::Float(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  NumOps::SConvert<float>(value.GetDouble()));
+            }
+        } break;
+        case GpType::BOOLEAN:
+        {
+            auto& container = ValGetter<Key>::Bool(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  value.GetBool());
+            }
+        } break;
+        case GpType::UUID:
+        {
+            auto& container = ValGetter<Key>::UUID(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  GpUUID::SFromString({value.GetString(), value.GetStringLength()}));
+            }
+        } break;
+        case GpType::STRING:
+        {
+            auto& container = ValGetter<Key>::String(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+
+                std::string s({value.GetString(), value.GetStringLength()});
+
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  std::move(s));
+            }
+        } break;
+        case GpType::BLOB:
+        {
+            auto& container = ValGetter<Key>::BLOB(aStruct, aPropInfo);
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+
+                GpRawPtrCharR   strPtr(value.GetString(), value.GetStringLength());
+                GpBytesArray    data = GpStringOps::SToBytes(strPtr);
+
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  std::move(data));
+            }
+        } break;
+        case GpType::STRUCT:
+        {
+            THROW_GPE("struct as map value are not supported, use struct::SP instead"_sv);
+        } break;
+        case GpType::STRUCT_SP:
+        {
+            auto& container = ValGetter<Key>::StructSP(aStruct, aPropInfo);
+
+            const GpTypeStructInfo& structInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+
+            for (const auto& v: aJsonObject)
+            {
+                const auto& name    = v.name;
+                const auto& value   = v.value;
+
+                const rapidjson::Document::ConstObject& jsonObject      = value.GetObject();
+                const GpTypeStructInfo&                 structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                GpTypeStructBase::SP                    structBaseSP    = structInfoJson.NewInstance();
+                GpTypeStructBase&                       structBase      = structBaseSP.Vn();
+                GpJsonToStruct::SReadStruct(structBase, jsonObject);
+
+                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                                  std::move(structBaseSP));
+            }
+        } break;
+        case GpType::ENUM:
+        {
+            THROW_GPE("enums as map value are not supported"_sv);
+        } break;
+        case GpType::NOT_SET:
+        {
+            THROW_GPE("Type "_sv + GpType::SToString(aPropInfo.Type()));
+        } break;
+        default:
+        {
+            THROW_GPE("Unsupported type "_sv + GpType::SToString(aPropInfo.Type()));
+        }
+    }
+}
+
 const std::array<std::string_view, 18>  GpJsonToStruct::sParseErrorCodes =
 {
     "No error"_sv                                         , //kParseErrorNone = 0,
@@ -24,12 +552,12 @@ const std::array<std::string_view, 18>  GpJsonToStruct::sParseErrorCodes =
     "Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
 };
 
-rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDOM (char* aJsonData, rapidjson::Document& aJsonDOM)
+rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDOM (GpRawPtrCharRW aJsonData, rapidjson::Document& aJsonDOM)
 {
-    THROW_GPE_COND_CHECK_M(aJsonData != nullptr, "Json data is null"_sv);
+    THROW_GPE_COND_CHECK_M(!aJsonData.IsEmpty(), "Json data is null"_sv);
 
     //Check for errors
-    if (aJsonDOM.ParseInsitu(const_cast<char*>(aJsonData)).HasParseError())
+    if (aJsonDOM.ParseInsitu(aJsonData.Ptr()).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
         THROW_GPE("JSON parse error: "_sv + sParseErrorCodes.at(int(parseErrorCode)));
@@ -41,22 +569,50 @@ rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDOM (char* aJsonDa
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
 }
 
-const GpTypeStructInfo& GpJsonToStruct::SFindStructInfo (const rapidjson::Document::ConstObject& aJsonObject)
+const GpTypeStructInfo&     GpJsonToStruct::SCheckStructInfo (const rapidjson::Document::ConstObject&   aJonObject,
+                                                              const GpTypeStructInfo&                   aStructInfoBase,
+                                                              const CheckMode                           aCheckMode)
+{
+    FindStructInfoResT findRes = SFindStructInfo(aJonObject);
+
+    if (findRes.has_value())
+    {
+        const GpTypeStructInfo& structInfoJson = findRes.value().get();
+        if (aStructInfoBase.UID() != structInfoJson.UID())
+        {
+            if (aCheckMode == CheckMode::MUST_BE_EQUAL)
+            {
+                THROW_GPE("Struct UID`s in json and in c++ must be equal. But c++ struct UID "_sv + aStructInfoBase.UID().ToString()
+                          + " and json struct UID "_sv + structInfoJson.UID().ToString());
+            } else if (GpTypeManager::S().IsBaseOf(aStructInfoBase.UID(), structInfoJson.UID()) == false)
+            {
+                THROW_GPE("Struct with UID "_sv + aStructInfoBase.UID().ToString()
+                          + " must be base of struct with UID "_sv + structInfoJson.UID().ToString());
+            }
+        }
+
+        return structInfoJson;
+    } else
+    {
+        return aStructInfoBase;
+    }
+}
+
+GpJsonToStruct::FindStructInfoResT  GpJsonToStruct::SFindStructInfo (const rapidjson::Document::ConstObject& aJsonObject)
 {
     //Detect type struct info
     rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember("@");
-    THROW_GPE_COND_CHECK_M(mit != aJsonObject.MemberEnd(), "Json member '@' was not found"_sv);
+
+    if (mit == aJsonObject.MemberEnd())
+    {
+        return std::nullopt;
+    }
 
     //Get struct uid
     GpUUID structUID;
 
-    try
-    {
-        structUID = GpUUID::SFromString(mit->value.GetString());
-    } catch (...)
-    {
-        THROW_GPE("Json member '@' must be UUID"_sv);
-    }
+    const auto& mitVal = mit->value;
+    structUID = GpUUID::SFromString({mitVal.GetString(), mitVal.GetStringLength()});
 
     //Find struct info by uid
     const auto structUidOpt = GpTypeManager::S().Find(structUID);
@@ -64,27 +620,6 @@ const GpTypeStructInfo& GpJsonToStruct::SFindStructInfo (const rapidjson::Docume
     THROW_GPE_COND_CHECK_M(structUidOpt.has_value(), "Struct info was not found by uid = '"_sv + structUID.ToString() + "'"_sv);
 
      return structUidOpt.value();
-}
-
-const GpTypeStructInfo&     GpJsonToStruct::SCheckStructInfo (const rapidjson::Document::ConstObject&   aJonObject,
-                                                              const GpTypeStructInfo&                   aStructInfoBase,
-                                                              const CheckMode                           aCheckMode)
-{
-    const GpTypeStructInfo& structInfoJson = SFindStructInfo(aJonObject);
-    if (aStructInfoBase.UID() != structInfoJson.UID())
-    {
-        if (aCheckMode == CheckMode::MUST_BE_EQUAL)
-        {
-            THROW_GPE("Struct UID`s in json and in c++ must be equal. But c++ struct UID "_sv + aStructInfoBase.UID().ToString()
-                      + " and json struct UID "_sv + structInfoJson.UID().ToString());
-        } else if (GpTypeManager::S().IsBaseOf(aStructInfoBase.UID(), structInfoJson.UID()) == false)
-        {
-            THROW_GPE("Struct with UID "_sv + aStructInfoBase.UID().ToString()
-                      + " must be base of struct with UID "_sv + structInfoJson.UID().ToString());
-        }
-    }
-
-    return structInfoJson;
 }
 
 void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          aStruct,
@@ -106,13 +641,13 @@ void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          
                 SReadValueVec(aStruct, propInfo, aJsonObject);
             } else if (containerType == GpTypeContainer::LIST)
             {
-                THROW_NOT_IMPLEMENTED();
+                SReadValueList(aStruct, propInfo, aJsonObject);
             } else if (containerType == GpTypeContainer::SET)
             {
-                THROW_NOT_IMPLEMENTED();
+                SReadValueSet(aStruct, propInfo, aJsonObject);
             } else if (containerType == GpTypeContainer::MAP)
             {
-                THROW_NOT_IMPLEMENTED();
+                SReadValueMap(aStruct, propInfo, aJsonObject);
             }
         } catch (const std::exception& e)
         {
@@ -132,7 +667,8 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
     std::string_view    propName = aPropInfo.Name();
 
     //Find json member
-    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(propName.data());
+    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(rapidjson::Document::ValueType(propName.data(),
+                                                                                                         NumOps::SConvert<rapidjson::SizeType>(propName.size())));
 
     if (   (mit == aJsonObject.MemberEnd())
         || (mit->value.IsNull()))
@@ -140,78 +676,78 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         return;
     }
 
+    const auto& mitVal = mit->value;
+
     switch (propType)
     {
         case GpType::U_INT_8:
         {
-            aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<u_int_8>(mit->value.GetUint64());
+            aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<u_int_8>(mitVal.GetUint64());
         } break;
         case GpType::S_INT_8:
         {
-            aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<s_int_8>(mit->value.GetInt64());
+            aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<s_int_8>(mitVal.GetInt64());
         } break;
         case GpType::U_INT_16:
         {
-            aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<u_int_16>(mit->value.GetUint64());
+            aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<u_int_16>(mitVal.GetUint64());
         } break;
         case GpType::S_INT_16:
         {
-            aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<s_int_16>(mit->value.GetInt64());
+            aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<s_int_16>(mitVal.GetInt64());
         } break;
         case GpType::U_INT_32:
         {
-            aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<u_int_32>(mit->value.GetUint64());
+            aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<u_int_32>(mitVal.GetUint64());
         } break;
         case GpType::S_INT_32:
         {
-            aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<s_int_32>(mit->value.GetInt64());
+            aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<s_int_32>(mitVal.GetInt64());
         } break;
         case GpType::U_INT_64:
         {
-            aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<u_int_64>(mit->value.GetUint64());
+            aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<u_int_64>(mitVal.GetUint64());
         } break;
         case GpType::S_INT_64:
         {
-            aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<s_int_64>(mit->value.GetInt64());
+            aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<s_int_64>(mitVal.GetInt64());
         } break;
         case GpType::DOUBLE:
         {
-            aPropInfo.Value_Double(aStruct) = NumOps::SConvert<double>(mit->value.GetDouble());
+            aPropInfo.Value_Double(aStruct) = NumOps::SConvert<double>(mitVal.GetDouble());
         } break;
         case GpType::FLOAT:
         {
-            aPropInfo.Value_Float(aStruct) = NumOps::SConvert<float>(mit->value.GetDouble());
+            aPropInfo.Value_Float(aStruct) = NumOps::SConvert<float>(mitVal.GetDouble());
         } break;
         case GpType::BOOLEAN:
         {
-            aPropInfo.Value_Bool(aStruct) = mit->value.GetBool();
+            aPropInfo.Value_Bool(aStruct) = mitVal.GetBool();
         } break;
         case GpType::UUID:
         {
-            aPropInfo.Value_UUID(aStruct) = GpUUID::SFromString(mit->value.GetString());
+            aPropInfo.Value_UUID(aStruct) = GpUUID::SFromString({mitVal.GetString(), mitVal.GetStringLength()});
         } break;
         case GpType::STRING:
         {
-            aPropInfo.Value_String(aStruct) = mit->value.GetString();
+            aPropInfo.Value_String(aStruct) = std::string(mitVal.GetString(), mitVal.GetStringLength());
         } break;
         case GpType::BLOB:
         {
-            GpRawPtrCharR strPtr(mit->value.GetString(), mit->value.GetStringLength());
+            GpRawPtrCharR strPtr(mitVal.GetString(), mitVal.GetStringLength());
             aPropInfo.Value_BLOB(aStruct) = GpStringOps::SToBytes(strPtr);
         } break;
         case GpType::STRUCT:
         {
             GpTypeStructBase&                   structBase      = aPropInfo.Value_Struct(aStruct);
-            const GpTypeStructInfo&             structInfoBase  = structBase.TypeStructInfo();
-            rapidjson::Document::ConstObject    jsonObject      = mit->value.GetObject();
-            GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::MUST_BE_EQUAL);
+            rapidjson::Document::ConstObject    jsonObject      = mitVal.GetObject();
             SReadStruct(structBase, jsonObject);
         } break;
         case GpType::STRUCT_SP:
         {
             GpTypeStructBase::SP&               structBaseSP    = aPropInfo.Value_StructSP(aStruct);
             const GpTypeStructInfo&             structInfoBase  = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
-            rapidjson::Document::ConstObject    jsonObject      = mit->value.GetObject();
+            rapidjson::Document::ConstObject    jsonObject      = mitVal.GetObject();
             const GpTypeStructInfo&             structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
                                                 structBaseSP    = structInfoJson.NewInstance();
             GpTypeStructBase&                   structBase      = structBaseSP.Vn();
@@ -219,7 +755,7 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         } break;
         case GpType::ENUM:
         {
-            aPropInfo.Value_Enum(aStruct).FromString(mit->value.GetString());
+            aPropInfo.Value_Enum(aStruct).FromString({mitVal.GetString(), mitVal.GetStringLength()});
         } break;
         case GpType::NOT_SET:
         {
@@ -236,11 +772,33 @@ void    GpJsonToStruct::SReadValueVec (GpTypeStructBase&                        
                                        const GpTypePropInfo&                    aPropInfo,
                                        const rapidjson::Document::ConstObject&  aJsonObject)
 {
-    const GpType::EnumT propType = aPropInfo.Type();
-    std::string_view    propName = aPropInfo.Name();
+    _ReadContainer<_PreprocVec, _InserterVec, GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject);
+}
+
+void    GpJsonToStruct::SReadValueList (GpTypeStructBase&                       aStruct,
+                                        const GpTypePropInfo&                   aPropInfo,
+                                        const rapidjson::Document::ConstObject& aJsonObject)
+{
+    _ReadContainer<_PreprocList, _InserterList, GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject);
+}
+
+void    GpJsonToStruct::SReadValueSet (GpTypeStructBase&                        aStruct,
+                                        const GpTypePropInfo&                   aPropInfo,
+                                        const rapidjson::Document::ConstObject& aJsonObject)
+{
+    _ReadContainer<_PreprocSet, _InserterSet, GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject);
+}
+
+void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        aStruct,
+                                       const GpTypePropInfo&                    aPropInfo,
+                                       const rapidjson::Document::ConstObject&  aJsonObject)
+{
+    const GpType::EnumT keyType     = aPropInfo.ContainerKeyType();
+    std::string_view    propName    = aPropInfo.Name();
 
     //Find json member
-    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(propName.data());
+    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(rapidjson::Document::ValueType(propName.data(),
+                                                                                                         NumOps::SConvert<rapidjson::SizeType>(propName.size())));
 
     if (   (mit == aJsonObject.MemberEnd())
         || (mit->value.IsNull()))
@@ -248,179 +806,81 @@ void    GpJsonToStruct::SReadValueVec (GpTypeStructBase&                        
         return;
     }
 
-    THROW_GPE_COND_CHECK_M(mit->value.IsArray(), "Json value '"_sv + propName + "' must be array"_sv);
+    const auto& mitVal = mit->value;
 
-    rapidjson::Document::ConstArray array = mit->value.GetArray();
+    THROW_GPE_COND_CHECK_M(mitVal.IsObject(), "Json value '"_sv + propName + "' must be object"_sv);
 
-    switch (propType)
+    rapidjson::Document::ConstObject jObj = mitVal.GetObject();
+
+    switch (keyType)
     {
         case GpType::U_INT_8:
         {
-            GpVector<u_int_8>& propVec = aPropInfo.Value_Vec_UInt8(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<u_int_8>(v.GetUint64()));
-            }
+            _ReadMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_8:
         {
-            GpVector<s_int_8>& propVec = aPropInfo.Value_Vec_SInt8(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<s_int_8>(v.GetInt64()));
-            }
+            _ReadMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::U_INT_16:
         {
-            GpVector<u_int_16>& propVec = aPropInfo.Value_Vec_UInt16(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<u_int_16>(v.GetUint64()));
-            }
+            _ReadMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_16:
         {
-            GpVector<s_int_16>& propVec = aPropInfo.Value_Vec_SInt16(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<s_int_16>(v.GetInt64()));
-            }
+            _ReadMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::U_INT_32:
         {
-            GpVector<u_int_32>& propVec = aPropInfo.Value_Vec_UInt32(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<u_int_32>(v.GetUint64()));
-            }
+            _ReadMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_32:
         {
-            GpVector<s_int_32>& propVec = aPropInfo.Value_Vec_SInt32(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<s_int_32>(v.GetInt64()));
-            }
+            _ReadMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::U_INT_64:
         {
-            GpVector<u_int_64>& propVec = aPropInfo.Value_Vec_UInt64(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<u_int_64>(v.GetUint64()));
-            }
+            _ReadMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_64:
         {
-            GpVector<s_int_64>& propVec = aPropInfo.Value_Vec_SInt64(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<s_int_64>(v.GetInt64()));
-            }
+            _ReadMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::DOUBLE:
         {
-            GpVector<double>& propVec = aPropInfo.Value_Vec_Double(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<double>(v.GetDouble()));
-            }
+            _ReadMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::FLOAT:
         {
-            GpVector<float>& propVec = aPropInfo.Value_Vec_Float(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(NumOps::SConvert<float>(v.GetDouble()));
-            }
+            _ReadMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::BOOLEAN:
         {
-            GpVector<bool>& propVec = aPropInfo.Value_Vec_Bool(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(v.GetBool());
-            }
+            THROW_GPE("bool as map key are not supported"_sv);
         } break;
         case GpType::UUID:
         {
-            GpVector<GpUUID>& propVec = aPropInfo.Value_Vec_UUID(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(GpUUID::SFromString(v.GetString()));
-            }
+            _ReadMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::STRING:
         {
-            GpVector<std::string>& propVec = aPropInfo.Value_Vec_String(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                propVec.emplace_back(v.GetString());
-            }
+            _ReadMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::BLOB:
         {
-            GpVector<GpBytesArray>& propVec = aPropInfo.Value_Vec_BLOB(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-            for (const auto& v: array)
-            {
-                GpRawPtrCharR strPtr(v.GetString(),v.GetStringLength());
-                propVec.emplace_back(GpStringOps::SToBytes(strPtr));
-            }
+            _ReadMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::STRUCT:
         {
-            THROW_GPE("Arrays of struct are not supported, use arrays of struct::SP instead"_sv);
+            THROW_GPE("struct as map key are not supported"_sv);
         } break;
         case GpType::STRUCT_SP:
         {
-            GpVector<GpTypeStructBase::SP>& propVec = aPropInfo.Value_Vec_StructSP(aStruct);
-            propVec.clear();
-            propVec.reserve(array.Size());
-
-            const GpTypeStructInfo& structInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
-
-            for (const auto& v: array)
-            {
-                const rapidjson::Document::ConstObject& jsonObject      = v.GetObject();
-                const GpTypeStructInfo&                 structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
-                GpTypeStructBase::SP                    structBaseSP    = structInfoJson.NewInstance();
-                GpTypeStructBase&                       structBase      = structBaseSP.Vn();
-                SReadStruct(structBase, jsonObject);
-
-                propVec.emplace_back(std::move(structBaseSP));
-            }
+            THROW_GPE("struct::sp as map key are not supported"_sv);
         } break;
         case GpType::ENUM:
         {
-            THROW_GPE("Arrays of enums are not supported"_sv);
+            THROW_GPE("enums as map key are not supported"_sv);
         } break;
         case GpType::NOT_SET:
         {

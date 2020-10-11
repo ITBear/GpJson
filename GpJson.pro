@@ -122,8 +122,7 @@ os_windows{
 	GP_CORE_LIB_V		= 2
 }
 
-os_linux
-{
+os_linux{
 }
 
 LIBS += -lGpCore2$$TARGET_POSTFIX$$GP_CORE_LIB_V
@@ -142,6 +141,7 @@ SOURCES += \
 HEADERS += \
     GpJsonFromStruct.hpp \
     GpJsonMapper.hpp \
+    GpJsonMapperTypeDetector.hpp \
     GpJsonToStruct.hpp \
     GpJson_global.hpp \
     GpJson.hpp
