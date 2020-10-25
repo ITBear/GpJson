@@ -25,12 +25,12 @@ void    GpJsonFromStruct::SToString (const rapidjson::Document& aJsonDOM,
 void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
                                   rapidjson::Document::GenericValue&    aJsonObject,
                                   rapidjson::Document::AllocatorType&   aJsonAllocator,
-                                  const size_t                          aFlags)
+                                  const GpJsonMapperFlags               aFlags)
 {
     const GpTypeStructInfo& structInfo  = aStruct.TypeStructInfo();
     const auto&             props       = structInfo.Props();
 
-    if (aFlags & size_t(Flags::WRITE_STRUCT_UID))
+    if (aFlags.Test(GpJsonMapperFlag::WRITE_STRUCT_UID))
     {
         const std::string structUidStr = structInfo.UID().ToString();
         rapidjson::Value n, v;
@@ -76,7 +76,7 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
                                        const GpTypePropInfo&                aPropInfo,
                                        rapidjson::Document::GenericValue&   aJsonObject,
                                        rapidjson::Document::AllocatorType&  aJsonAllocator,
-                                       const size_t                         aFlags)
+                                       const GpJsonMapperFlags              aFlags)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();
@@ -189,7 +189,7 @@ void    GpJsonFromStruct::SWriteValueVec (const GpTypeStructBase&               
                                           const GpTypePropInfo&                 aPropInfo,
                                           rapidjson::Document::GenericValue&    aJsonObject,
                                           rapidjson::Document::AllocatorType&   aJsonAllocator,
-                                          const size_t                          aFlags)
+                                          const GpJsonMapperFlags               aFlags)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();

@@ -59,7 +59,7 @@ void    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData, GpTypeStructBas
 }
 
 std::string     GpJsonMapper::SToJson (const GpTypeStructBase&  aStruct,
-                                       const size_t             aFlags)
+                                       const GpJsonMapperFlags  aFlags)
 {
     rapidjson::Document jsonDOM;
 
@@ -69,7 +69,7 @@ std::string     GpJsonMapper::SToJson (const GpTypeStructBase&  aStruct,
 
 void    GpJsonMapper::SToJson (const GpTypeStructBase&  aStruct,
                                GpByteWriter&            aWriter,
-                               const size_t             aFlags)
+                               const GpJsonMapperFlags  aFlags)
 {
     rapidjson::Document jsonDOM;
 

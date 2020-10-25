@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpJson_global.hpp"
+#include "GpJsonMapperFlags.hpp"
 
 #define RAPIDJSON_ASSERT(X) THROW_GPE_COND_CHECK_M(X, "Json processing error");
 
@@ -18,11 +18,6 @@ class GpJsonFromStruct
 public:
     CLASS_REMOVE_CTRS(GpJsonFromStruct);
 
-    enum class Flags: size_t
-    {
-        WRITE_STRUCT_UID    = 1 << 0
-    };
-
 public:
     static std::string  SToString       (const rapidjson::Document& aJsonDOM);
     static void         SToString       (const rapidjson::Document& aJsonDOM,
@@ -31,20 +26,20 @@ public:
     static void         SWrite          (const GpTypeStructBase&                aStruct,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const size_t                           aFlags);
+                                         const GpJsonMapperFlags                aFlags);
 
 private:
     static void         SWriteValue     (const GpTypeStructBase&                aStruct,
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const size_t                           aFlags);
+                                         const GpJsonMapperFlags                aFlags);
 
     static void         SWriteValueVec  (const GpTypeStructBase&                aStruct,
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const size_t                           aFlags);
+                                         const GpJsonMapperFlags                aFlags);
 };
 
 }//namespace GPlatform

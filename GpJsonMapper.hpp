@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpJson_global.hpp"
+#include "GpJsonMapperFlags.hpp"
 
 namespace GPlatform {
 
@@ -26,10 +26,10 @@ public:
     typename T::SP                  SFromJsonInsitu (GpRawPtrCharRW aJsonData);
 
     static std::string              SToJson         (const GpTypeStructBase&    aStruct,
-                                                     const size_t               aFlags);
+                                                     const GpJsonMapperFlags    aFlags);
     static void                     SToJson         (const GpTypeStructBase&    aStruct,
                                                      GpByteWriter&              aWriter,
-                                                     const size_t               aFlags);
+                                                     const GpJsonMapperFlags    aFlags);
 };
 
 template <typename T>
