@@ -24,17 +24,17 @@ public:
         CAN_BE_DERIVED
     };
 
-    using FindStructInfoResT = std::optional<std::reference_wrapper<const GpTypeStructInfo>>;
+    using FindTypeInfoResT = std::optional<std::reference_wrapper<const GpTypeStructInfo>>;
 
 public:
     static rapidjson::Document::ConstObject SParseJsonDOM       (GpRawPtrCharRW         aJsonData,
                                                                  rapidjson::Document&   aJsonDOM);
     static void                             SReadStruct         (GpTypeStructBase&                          aStruct,
                                                                  const rapidjson::Document::ConstObject&    aJsonObject);
-    static const GpTypeStructInfo&          SCheckStructInfo    (const rapidjson::Document::ConstObject&    aJonObject,
-                                                                 const GpTypeStructInfo&                    aStructInfoBase,
+    static const GpTypeStructInfo&          SCheckTypeInfo      (const rapidjson::Document::ConstObject&    aJonObject,
+                                                                 const GpTypeStructInfo&                    aTypeInfoBase,
                                                                  const CheckMode                            aCheckMode);
-    static FindStructInfoResT               SFindStructInfo     (const rapidjson::Document::ConstObject&    aJsonObject);
+    static FindTypeInfoResT                 SFindTypeInfo       (const rapidjson::Document::ConstObject&    aJsonObject);
 
 private:
     static void                             SReadValue          (GpTypeStructBase&                          aStruct,

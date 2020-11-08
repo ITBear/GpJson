@@ -229,13 +229,13 @@ void    _ReadContainer (GpTypeStructBase&                           aStruct,
             auto& container = ValGetter::StructSP(aStruct, aPropInfo);
             Prepocessor::SProc(container, arraySize);
 
-            const GpTypeStructInfo& structInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+            const GpTypeStructInfo& typeInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
 
             for (const auto& v: array)
             {
                 const rapidjson::Document::ConstObject& jsonObject      = v.GetObject();
-                const GpTypeStructInfo&                 structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
-                GpTypeStructBase::SP                    structBaseSP    = structInfoJson.NewInstance();
+                const GpTypeStructInfo&                 typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject, typeInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                GpTypeStructBase::SP                    structBaseSP    = typeInfoJson.NewInstance();
                 GpTypeStructBase&                       structBase      = structBaseSP.Vn();
                 GpJsonToStruct::SReadStruct(structBase, jsonObject);
 
@@ -498,7 +498,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
         {
             auto& container = ValGetter<Key>::StructSP(aStruct, aPropInfo);
 
-            const GpTypeStructInfo& structInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+            const GpTypeStructInfo& typeInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
 
             for (const auto& v: aJsonObject)
             {
@@ -506,8 +506,10 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
                 const auto& value   = v.value;
 
                 const rapidjson::Document::ConstObject& jsonObject      = value.GetObject();
-                const GpTypeStructInfo&                 structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
-                GpTypeStructBase::SP                    structBaseSP    = structInfoJson.NewInstance();
+                const GpTypeStructInfo&                 typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject,
+                                                                                                         typeInfoBase,
+                                                                                                         GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                GpTypeStructBase::SP                    structBaseSP    = typeInfoJson.NewInstance();
                 GpTypeStructBase&                       structBase      = structBaseSP.Vn();
                 GpJsonToStruct::SReadStruct(structBase, jsonObject);
 
@@ -569,36 +571,36 @@ rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDOM (GpRawPtrCharR
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
 }
 
-const GpTypeStructInfo&     GpJsonToStruct::SCheckStructInfo (const rapidjson::Document::ConstObject&   aJonObject,
-                                                              const GpTypeStructInfo&                   aStructInfoBase,
-                                                              const CheckMode                           aCheckMode)
+const GpTypeStructInfo&     GpJsonToStruct::SCheckTypeInfo (const rapidjson::Document::ConstObject& aJonObject,
+                                                            const GpTypeStructInfo&                 aTypeInfoBase,
+                                                            const CheckMode                         aCheckMode)
 {
-    FindStructInfoResT findRes = SFindStructInfo(aJonObject);
+    FindTypeInfoResT findRes = SFindTypeInfo(aJonObject);
 
     if (findRes.has_value())
     {
-        const GpTypeStructInfo& structInfoJson = findRes.value().get();
-        if (aStructInfoBase.UID() != structInfoJson.UID())
+        const GpTypeStructInfo& typeInfoJson = findRes.value().get();
+        if (aTypeInfoBase.UID() != typeInfoJson.UID())
         {
             if (aCheckMode == CheckMode::MUST_BE_EQUAL)
             {
-                THROW_GPE("Struct UID`s in json and in c++ must be equal. But c++ struct UID "_sv + aStructInfoBase.UID().ToString()
-                          + " and json struct UID "_sv + structInfoJson.UID().ToString());
-            } else if (GpTypeManager::S().IsBaseOf(aStructInfoBase.UID(), structInfoJson.UID()) == false)
+                THROW_GPE("Struct UID`s in json and in c++ must be equal. But c++ struct UID "_sv + aTypeInfoBase.UID().ToString()
+                          + " and json struct UID "_sv + typeInfoJson.UID().ToString());
+            } else if (GpTypeManager::S().IsBaseOf(aTypeInfoBase.UID(), typeInfoJson.UID()) == false)
             {
-                THROW_GPE("Struct with UID "_sv + aStructInfoBase.UID().ToString()
-                          + " must be base of struct with UID "_sv + structInfoJson.UID().ToString());
+                THROW_GPE("Struct with UID "_sv + aTypeInfoBase.UID().ToString()
+                          + " must be base of struct with UID "_sv + typeInfoJson.UID().ToString());
             }
         }
 
-        return structInfoJson;
+        return typeInfoJson;
     } else
     {
-        return aStructInfoBase;
+        return aTypeInfoBase;
     }
 }
 
-GpJsonToStruct::FindStructInfoResT  GpJsonToStruct::SFindStructInfo (const rapidjson::Document::ConstObject& aJsonObject)
+GpJsonToStruct::FindTypeInfoResT    GpJsonToStruct::SFindTypeInfo (const rapidjson::Document::ConstObject& aJsonObject)
 {
     //Detect type struct info
     rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember("@");
@@ -625,8 +627,8 @@ GpJsonToStruct::FindStructInfoResT  GpJsonToStruct::SFindStructInfo (const rapid
 void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          aStruct,
                                      const rapidjson::Document::ConstObject&    aJsonObject)
 {
-    const GpTypeStructInfo& structInfo  = aStruct.TypeStructInfo();
-    const auto&             props       = structInfo.Props();
+    const GpTypeStructInfo& typeInfo    = aStruct.TypeInfo();
+    const auto&             props       = typeInfo.Props();
 
     for (const GpTypePropInfo& propInfo: props)
     {
@@ -651,10 +653,10 @@ void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          
             }
         } catch (const std::exception& e)
         {
-            THROW_GPE("Failed to read value from json. Struct "_sv + structInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\n"_sv + e.what());
+            THROW_GPE("Failed to read value from json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\n"_sv + e.what());
         } catch (...)
         {
-            THROW_GPE("Failed to read value from json. Struct "_sv + structInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception");
+            THROW_GPE("Failed to read value from json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception");
         }
     }
 }
@@ -746,10 +748,10 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         case GpType::STRUCT_SP:
         {
             GpTypeStructBase::SP&               structBaseSP    = aPropInfo.Value_StructSP(aStruct);
-            const GpTypeStructInfo&             structInfoBase  = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+            const GpTypeStructInfo&             typeInfoBase    = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
             rapidjson::Document::ConstObject    jsonObject      = mitVal.GetObject();
-            const GpTypeStructInfo&             structInfoJson  = GpJsonToStruct::SCheckStructInfo(jsonObject, structInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
-                                                structBaseSP    = structInfoJson.NewInstance();
+            const GpTypeStructInfo&             typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject, typeInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                                                structBaseSP    = typeInfoJson.NewInstance();
             GpTypeStructBase&                   structBase      = structBaseSP.Vn();
             SReadStruct(structBase, jsonObject);
         } break;

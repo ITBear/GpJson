@@ -23,7 +23,7 @@ public:
                                     GpJsonMapperTypeDetector    (void) noexcept {}
     virtual                         ~GpJsonMapperTypeDetector   (void) noexcept {}
 
-    virtual const GpTypeStructInfo& DetectTypeStructInfo        (const rapidjson::Document::ConstObject& aJsonObject) const = 0;
+    virtual const GpTypeStructInfo& DetectTypeInfo              (const rapidjson::Document::ConstObject& aJsonObject) const = 0;
 };
 
 }//namespace GPlatform

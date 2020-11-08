@@ -27,12 +27,12 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
                                   rapidjson::Document::AllocatorType&   aJsonAllocator,
                                   const GpJsonMapperFlags               aFlags)
 {
-    const GpTypeStructInfo& structInfo  = aStruct.TypeStructInfo();
-    const auto&             props       = structInfo.Props();
+    const GpTypeStructInfo& typeInfo    = aStruct.TypeInfo();
+    const auto&             props       = typeInfo.Props();
 
     if (aFlags.Test(GpJsonMapperFlag::WRITE_STRUCT_UID))
     {
-        const std::string structUidStr = structInfo.UID().ToString();
+        const std::string structUidStr = typeInfo.UID().ToString();
         rapidjson::Value n, v;
 
         n.SetString("@", aJsonAllocator);
@@ -63,10 +63,10 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
             }
         } catch (const std::exception& e)
         {
-            THROW_GPE("Failed to write value to json. Struct "_sv + structInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\n"_sv + e.what());
+            THROW_GPE("Failed to write value to json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\n"_sv + e.what());
         } catch (...)
         {
-            THROW_GPE("Failed to write value to json. Struct "_sv + structInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception");
+            THROW_GPE("Failed to write value to json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception");
         }
     }
 

@@ -7,9 +7,9 @@ QMAKE_CXXFLAGS += -DGP_MODULE_UUID=73be6325-e256-436e-9db1-82788105e16e
 QMAKE_CXXFLAGS += -DGP_TYPE_SYSTEM_STATIC_ADD_TO_MANAGER
 DEFINES		   += GPJSON_LIBRARY
 PACKET_NAME     = GpJson
-DIR_LEVEL       = .
+DIR_LEVEL       = ./..
 
-include(../QtGlobalPro.pri)
+include(../../QtGlobalPro.pri)
 
 #------------------------------ LIBS BEGIN ---------------------------------
 os_windows{

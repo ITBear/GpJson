@@ -8,30 +8,30 @@ namespace GPlatform {
 GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData)
 {
     rapidjson::Document                 jsonDOM;
-    rapidjson::Document::ConstObject    jsonObject          = GpJsonToStruct::SParseJsonDOM(aJsonData, jsonDOM);
-    GpJsonToStruct::FindStructInfoResT  structInfoFindRes   = GpJsonToStruct::SFindStructInfo(jsonObject);
+    rapidjson::Document::ConstObject    jsonObject      = GpJsonToStruct::SParseJsonDOM(aJsonData, jsonDOM);
+    GpJsonToStruct::FindTypeInfoResT    typeInfoFindRes = GpJsonToStruct::SFindTypeInfo(jsonObject);
 
-    if (!structInfoFindRes.has_value())
+    if (!typeInfoFindRes.has_value())
     {
         THROW_GPE("Json member '@' was not found"_sv);
     }
 
-    const GpTypeStructInfo&             structInfo  = structInfoFindRes.value().get();
-    GpTypeStructBase::SP                resStruct   = structInfo.NewInstance();
+    const GpTypeStructInfo& typeInfo    = typeInfoFindRes.value().get();
+    GpTypeStructBase::SP    resStruct   = typeInfo.NewInstance();
 
     GpJsonToStruct::SReadStruct(resStruct.Vn(), jsonObject);
 
     return resStruct;
 }
 
-GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData, const GpTypeStructInfo& aTypeStructInfo)
+GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData, const GpTypeStructInfo& aTypeInfo)
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject  = GpJsonToStruct::SParseJsonDOM(aJsonData, jsonDOM);
-    const GpTypeStructInfo&             structInfo  = GpJsonToStruct::SCheckStructInfo(jsonObject,
-                                                                                       aTypeStructInfo,
-                                                                                       GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
-    GpTypeStructBase::SP                resStruct   = structInfo.NewInstance();
+    const GpTypeStructInfo&             typeInfo    = GpJsonToStruct::SCheckTypeInfo(jsonObject,
+                                                                                     aTypeInfo,
+                                                                                     GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+    GpTypeStructBase::SP                resStruct   = typeInfo.NewInstance();
 
     GpJsonToStruct::SReadStruct(resStruct.Vn(), jsonObject);
 
@@ -42,8 +42,8 @@ GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData,
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject  = GpJsonToStruct::SParseJsonDOM(aJsonData, jsonDOM);
-    const GpTypeStructInfo&             structInfo  = aTypeDetector.DetectTypeStructInfo(jsonObject);
-    GpTypeStructBase::SP                resStruct   = structInfo.NewInstance();
+    const GpTypeStructInfo&             typeInfo    = aTypeDetector.DetectTypeInfo(jsonObject);
+    GpTypeStructBase::SP                resStruct   = typeInfo.NewInstance();
 
     GpJsonToStruct::SReadStruct(resStruct.Vn(), jsonObject);
 
