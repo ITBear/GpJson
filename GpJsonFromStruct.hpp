@@ -40,6 +40,24 @@ private:
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
                                          const GpJsonMapperFlags                aFlags);
+
+    static void         SWriteValueList (const GpTypeStructBase&                aStruct,
+                                         const GpTypePropInfo&                  aPropInfo,
+                                         rapidjson::Document::GenericValue&     aJsonObject,
+                                         rapidjson::Document::AllocatorType&    aJsonAllocator,
+                                         const GpJsonMapperFlags                aFlags);
+
+    static void         SWriteValueSet  (const GpTypeStructBase&                aStruct,
+                                         const GpTypePropInfo&                  aPropInfo,
+                                         rapidjson::Document::GenericValue&     aJsonObject,
+                                         rapidjson::Document::AllocatorType&    aJsonAllocator,
+                                         const GpJsonMapperFlags                aFlags);
+
+    static void         SWriteValueMap  (const GpTypeStructBase&                aStruct,
+                                         const GpTypePropInfo&                  aPropInfo,
+                                         rapidjson::Document::GenericValue&     aJsonObject,
+                                         rapidjson::Document::AllocatorType&    aJsonAllocator,
+                                         const GpJsonMapperFlags                aFlags);
 };
 
 }//namespace GPlatform

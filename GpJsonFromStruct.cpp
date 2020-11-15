@@ -7,6 +7,427 @@
 
 namespace GPlatform {
 
+template<typename T>
+void    _ProcessVal (rapidjson::Value&                      aJValOut,
+                     const T&                               aValue,
+                     rapidjson::Document::AllocatorType&    aJsonAllocator,
+                     const GpJsonMapperFlags                aFlags)
+{
+    constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
+
+    if constexpr (type == GpType::U_INT_8)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_8)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::U_INT_16)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_16)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::U_INT_32)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_32)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::U_INT_64)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_64)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::DOUBLE)
+    {
+        aJValOut.SetDouble(aValue);
+    } else if constexpr (type == GpType::FLOAT)
+    {
+        aJValOut.SetDouble(double(aValue));
+    } else if constexpr (type == GpType::BOOLEAN)
+    {
+        aJValOut.SetBool(aValue);
+    } else if constexpr (type == GpType::UUID)
+    {
+        const std::string s = aValue.ToString();
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::STRING)
+    {
+        aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::BLOB)
+    {
+        const std::string s = GpStringOps::SFromBytes(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::STRUCT)
+    {
+        THROW_GPE("Struct are not supported, use arrays of struct::SP instead"_sv);
+    } else if constexpr (type == GpType::STRUCT_SP)
+    {
+        if (aValue.IsNULL())
+        {
+            aJValOut.SetNull();
+        } else
+        {
+            const GpTypeStructBase&             structBase  = aValue.VCn();
+            rapidjson::Document::GenericValue&  obj         = aJValOut.SetObject();
+            GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aFlags);
+        }
+    } else if constexpr (type == GpType::ENUM)
+    {
+        THROW_GPE("Enums are not supported"_sv);
+    } else
+    {
+        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'");
+    }
+}
+
+template<typename ValGetter>
+void    _ProcessContainer (const GpTypeStructBase&              aStruct,
+                           const GpTypePropInfo&                aPropInfo,
+                           rapidjson::Document::GenericValue&   aJsonObject,
+                           rapidjson::Document::AllocatorType&  aJsonAllocator,
+                           const GpJsonMapperFlags              aFlags)
+{
+    const GpType::EnumT propType = aPropInfo.Type();
+    std::string_view    propName = aPropInfo.Name();
+
+    rapidjson::Value jsonMemberName;
+    rapidjson::Value jsonMemberValue;
+
+    jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    rapidjson::Document::GenericValue& jsonArray = jsonMemberValue.SetArray();
+
+    switch (propType)
+    {
+        case GpType::U_INT_8:
+        {
+            auto& container = ValGetter::UInt8(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const u_int_8 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::S_INT_8:
+        {
+            auto& container = ValGetter::SInt8(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const s_int_8 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::U_INT_16:
+        {
+            auto& container = ValGetter::UInt16(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const u_int_16 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::S_INT_16:
+        {
+            auto& container = ValGetter::SInt16(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const s_int_16 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::U_INT_32:
+        {
+            auto& container = ValGetter::UInt32(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const u_int_32 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::S_INT_32:
+        {
+            auto& container = ValGetter::SInt32(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const s_int_32 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::U_INT_64:
+        {
+            auto& container = ValGetter::UInt64(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const u_int_64 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::S_INT_64:
+        {
+            auto& container = ValGetter::SInt64(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const s_int_64 e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::DOUBLE:
+        {
+            auto& container = ValGetter::Double(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const double e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetDouble(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::FLOAT:
+        {
+            auto& container = ValGetter::Float(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const float e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetDouble(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::BOOLEAN:
+        {
+            auto& container = ValGetter::Bool(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const bool e: container)
+            {
+                jsonArray.PushBack(rapidjson::Value().SetBool(e), aJsonAllocator);
+            }
+        } break;
+        case GpType::UUID:
+        {
+            auto& container = ValGetter::UUID(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const GpUUID& e: container)
+            {
+                const std::string s = e.ToString();
+                rapidjson::Value jv;
+                jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+
+                jsonArray.PushBack(jv.Move(), aJsonAllocator);
+            }
+        } break;
+        case GpType::STRING:
+        {
+            auto& container = ValGetter::String(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const std::string& e: container)
+            {
+                rapidjson::Value jv;
+                jv.SetString(e.data(), NumOps::SConvert<rapidjson::SizeType>(e.length()), aJsonAllocator);
+
+                jsonArray.PushBack(jv.Move(), aJsonAllocator);
+            }
+        } break;
+        case GpType::BLOB:
+        {
+            auto& container = ValGetter::BLOB(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const GpBytesArray& e: container)
+            {
+                const std::string s = GpStringOps::SFromBytes(e);
+                rapidjson::Value jv;
+                jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+
+                jsonArray.PushBack(jv.Move(), aJsonAllocator);
+            }
+        } break;
+        case GpType::STRUCT:
+        {
+            THROW_GPE("Arrays of struct are not supported, use arrays of struct::SP instead"_sv);
+        } break;
+        case GpType::STRUCT_SP:
+        {
+            auto& container = ValGetter::StructSP(aStruct, aPropInfo);
+            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
+
+            for (const GpTypeStructBase::SP& e: container)
+            {
+                rapidjson::Value jv;
+
+                if (e.IsNULL())
+                {
+                    jv.SetNull();
+                } else
+                {
+                    const GpTypeStructBase&             structBase  = e.VCn();
+                    rapidjson::Document::GenericValue&  obj         = jv.SetObject();
+                    GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aFlags);
+                }
+
+                jsonArray.PushBack(jv.Move(), aJsonAllocator);
+            }
+        } break;
+        case GpType::ENUM:
+        {
+            THROW_GPE("Arrays of enums are not supported"_sv);
+        } break;
+        case GpType::NOT_SET:
+        {
+            THROW_GPE("Type "_sv + GpType::SToString(aPropInfo.Type()));
+        } break;
+        default:
+        {
+            THROW_GPE("Unsupported type "_sv + GpType::SToString(aPropInfo.Type()));
+        }
+    }
+
+    aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+}
+
+template<typename KeyT,
+         typename CT>
+void    _ProcessMapContainer (const CT&                             aContainer,
+                              rapidjson::Document::GenericValue&    aJsonMap,
+                              rapidjson::Document::AllocatorType&   aJsonAllocator,
+                              const GpJsonMapperFlags               aFlags)
+{
+    //aJsonMap.Reserve(NumOps::SConvert<rapidjson::SizeType>(aContainer.size()), aJsonAllocator);
+
+    for (const auto&[k, v]: aContainer)
+    {
+        //Key
+        rapidjson::Value jMapElementKey;
+        _ProcessVal(jMapElementKey, k, aJsonAllocator, aFlags);
+
+        //Value
+        rapidjson::Value jMapElementVal;
+        _ProcessVal(jMapElementVal, v, aJsonAllocator, aFlags);
+
+        rapidjson::Value                    jMapElement;
+        //rapidjson::Document::GenericValue&    jMapElementObj = jMapElement.SetObject();
+        //jMapElementObj.AddMember(jMapElementKey.Move(), jMapElementVal.Move(), aJsonAllocator);
+        aJsonMap.AddMember(jMapElementKey.Move(), jMapElementVal.Move(), aJsonAllocator);
+    }
+}
+
+template<typename                       Key,
+         template<typename...> class    ValGetter>
+void    _ProcessMap (const GpTypeStructBase&                aStruct,
+                     const GpTypePropInfo&                  aPropInfo,
+                     rapidjson::Document::GenericValue&     aJsonObject,
+                     rapidjson::Document::AllocatorType&    aJsonAllocator,
+                     const GpJsonMapperFlags                aFlags)
+{
+    const GpType::EnumT                 propType    = aPropInfo.Type();
+    rapidjson::Document::GenericValue&  jsonMap     = aJsonObject;
+
+    switch (propType)
+    {
+        case GpType::U_INT_8:
+        {
+            auto& container = ValGetter<Key>::UInt8(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::S_INT_8:
+        {
+            auto& container = ValGetter<Key>::SInt8(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::U_INT_16:
+        {
+            auto& container = ValGetter<Key>::UInt16(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::S_INT_16:
+        {
+            auto& container = ValGetter<Key>::SInt16(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::U_INT_32:
+        {
+            auto& container = ValGetter<Key>::UInt32(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::S_INT_32:
+        {
+            auto& container = ValGetter<Key>::SInt32(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::U_INT_64:
+        {
+            auto& container = ValGetter<Key>::UInt64(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::S_INT_64:
+        {
+            auto& container = ValGetter<Key>::SInt64(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::DOUBLE:
+        {
+            auto& container = ValGetter<Key>::Double(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::FLOAT:
+        {
+            auto& container = ValGetter<Key>::Float(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::BOOLEAN:
+        {
+            auto& container = ValGetter<Key>::Bool(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::UUID:
+        {
+            auto& container = ValGetter<Key>::UUID(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::STRING:
+        {
+            auto& container = ValGetter<Key>::String(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::BLOB:
+        {
+            auto& container = ValGetter<Key>::BLOB(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::STRUCT:
+        {
+            THROW_GPE("struct as map value are not supported, use struct::SP instead"_sv);
+        } break;
+        case GpType::STRUCT_SP:
+        {
+            auto& container = ValGetter<Key>::StructSP(aStruct, aPropInfo);
+            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+        } break;
+        case GpType::ENUM:
+        {
+            THROW_GPE("enums are not supported"_sv);
+        } break;
+        case GpType::NOT_SET:
+        {
+            THROW_GPE("Type "_sv + GpType::SToString(aPropInfo.Type()));
+        } break;
+        default:
+        {
+            THROW_GPE("Unsupported type "_sv + GpType::SToString(aPropInfo.Type()));
+        }
+    }
+}
+
+
 std::string GpJsonFromStruct::SToString (const rapidjson::Document& aJsonDOM)
 {
     rapidjson::StringBuffer                     buffer;
@@ -53,13 +474,13 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
                 SWriteValueVec(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
             } else if (containerType == GpTypeContainer::LIST)
             {
-                THROW_NOT_IMPLEMENTED();
+                SWriteValueList(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
             } else if (containerType == GpTypeContainer::SET)
             {
-                THROW_NOT_IMPLEMENTED();
+                SWriteValueSet(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
             } else if (containerType == GpTypeContainer::MAP)
             {
-                THROW_NOT_IMPLEMENTED();
+                SWriteValueMap(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
             }
         } catch (const std::exception& e)
         {
@@ -191,199 +612,111 @@ void    GpJsonFromStruct::SWriteValueVec (const GpTypeStructBase&               
                                           rapidjson::Document::AllocatorType&   aJsonAllocator,
                                           const GpJsonMapperFlags               aFlags)
 {
-    const GpType::EnumT propType = aPropInfo.Type();
-    std::string_view    propName = aPropInfo.Name();
+    _ProcessContainer<GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
+}
+
+void    GpJsonFromStruct::SWriteValueList (const GpTypeStructBase&              aStruct,
+                                           const GpTypePropInfo&                aPropInfo,
+                                           rapidjson::Document::GenericValue&   aJsonObject,
+                                           rapidjson::Document::AllocatorType&  aJsonAllocator,
+                                           const GpJsonMapperFlags              aFlags)
+{
+    _ProcessContainer<GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
+}
+
+void    GpJsonFromStruct::SWriteValueSet (const GpTypeStructBase&               aStruct,
+                                          const GpTypePropInfo&                 aPropInfo,
+                                          rapidjson::Document::GenericValue&    aJsonObject,
+                                          rapidjson::Document::AllocatorType&   aJsonAllocator,
+                                          const GpJsonMapperFlags               aFlags)
+{
+    _ProcessContainer<GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
+}
+
+void    GpJsonFromStruct::SWriteValueMap (const GpTypeStructBase&               aStruct,
+                                          const GpTypePropInfo&                 aPropInfo,
+                                          rapidjson::Document::GenericValue&    aJsonObject,
+                                          rapidjson::Document::AllocatorType&   aJsonAllocator,
+                                          const GpJsonMapperFlags               aFlags)
+{
+    const GpType::EnumT keyType     = aPropInfo.ContainerKeyType();
+    std::string_view    propName    = aPropInfo.Name();
 
     rapidjson::Value jsonMemberName;
     rapidjson::Value jsonMemberValue;
 
     jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
-    rapidjson::Document::GenericValue& jsonArray = jsonMemberValue.SetArray();
+    rapidjson::Document::GenericValue& jsonObject = jsonMemberValue.SetObject();
 
-
-
-    switch (propType)
+    switch (keyType)
     {
         case GpType::U_INT_8:
         {
-            const auto& vec = aPropInfo.Value_Vec_UInt8(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const u_int_8 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
-            }
+            _ProcessMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::S_INT_8:
         {
-            const auto& vec = aPropInfo.Value_Vec_SInt8(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const s_int_8 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
-            }
+            _ProcessMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::U_INT_16:
         {
-            const auto& vec = aPropInfo.Value_Vec_UInt16(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const u_int_16 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
-            }
+            _ProcessMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::S_INT_16:
         {
-            const auto& vec = aPropInfo.Value_Vec_SInt16(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const s_int_16 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
-            }
+            _ProcessMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::U_INT_32:
         {
-            const auto& vec = aPropInfo.Value_Vec_UInt32(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const u_int_32 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
-            }
+            _ProcessMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::S_INT_32:
         {
-            const auto& vec = aPropInfo.Value_Vec_SInt32(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const s_int_32 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
-            }
+            _ProcessMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::U_INT_64:
         {
-            const auto& vec = aPropInfo.Value_Vec_UInt64(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const u_int_64 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
-            }
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::S_INT_64:
         {
-            const auto& vec = aPropInfo.Value_Vec_SInt64(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const s_int_64 e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetInt64(e), aJsonAllocator);
-            }
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::DOUBLE:
         {
-            const auto& vec = aPropInfo.Value_Vec_Double(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const double e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetDouble(e), aJsonAllocator);
-            }
+            _ProcessMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::FLOAT:
         {
-            const auto& vec = aPropInfo.Value_Vec_Float(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const float e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetDouble(e), aJsonAllocator);
-            }
+            _ProcessMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::BOOLEAN:
         {
-            const auto& vec = aPropInfo.Value_Vec_Bool(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const bool e: vec)
-            {
-                jsonArray.PushBack(rapidjson::Value().SetBool(e), aJsonAllocator);
-            }
+            THROW_GPE("bool as map key are not supported"_sv);
         } break;
         case GpType::UUID:
         {
-            const auto& vec = aPropInfo.Value_Vec_UUID(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const GpUUID& e: vec)
-            {
-                const std::string s = e.ToString();
-                rapidjson::Value jv;
-                jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
-
-                jsonArray.PushBack(jv.Move(), aJsonAllocator);
-            }
+            _ProcessMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::STRING:
         {
-            const auto& vec = aPropInfo.Value_Vec_String(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const std::string& e: vec)
-            {
-                rapidjson::Value jv;
-                jv.SetString(e.data(), NumOps::SConvert<rapidjson::SizeType>(e.length()), aJsonAllocator);
-
-                jsonArray.PushBack(jv.Move(), aJsonAllocator);
-            }
+            _ProcessMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::BLOB:
         {
-            const auto& vec = aPropInfo.Value_Vec_BLOB(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const GpBytesArray& e: vec)
-            {
-                const std::string s = GpStringOps::SFromBytes(e);
-                rapidjson::Value jv;
-                jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
-
-                jsonArray.PushBack(jv.Move(), aJsonAllocator);
-            }
+            _ProcessMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
         case GpType::STRUCT:
         {
-            THROW_GPE("Arrays of struct are not supported, use arrays of struct::SP instead"_sv);
+            THROW_GPE("struct as map key are not supported"_sv);
         } break;
         case GpType::STRUCT_SP:
         {
-            const auto& vec = aPropInfo.Value_Vec_StructSP(aStruct);
-            jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(vec.size()), aJsonAllocator);
-
-            for (const GpTypeStructBase::SP& e: vec)
-            {
-                rapidjson::Value jv;
-
-                if (e.IsNULL())
-                {
-                    jv.SetNull();
-                } else
-                {
-                    const GpTypeStructBase&             structBase  = e.VCn();
-                    rapidjson::Document::GenericValue&  obj         = jv.SetObject();
-                    SWrite(structBase, obj, aJsonAllocator, aFlags);
-                }
-
-                jsonArray.PushBack(jv.Move(), aJsonAllocator);
-            }
+            THROW_GPE("struct::sp as map key are not supported"_sv);
         } break;
         case GpType::ENUM:
         {
-            THROW_GPE("Arrays of enums are not supported"_sv);
+            THROW_GPE("enums as map key are not supported"_sv);
         } break;
         case GpType::NOT_SET:
         {

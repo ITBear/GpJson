@@ -63,13 +63,12 @@ public:
     }
 };
 
-
 template<typename Prepocessor,
          typename Inserter,
          typename ValGetter>
-void    _ReadContainer (GpTypeStructBase&                           aStruct,
-                        const GpTypePropInfo&                       aPropInfo,
-                        const rapidjson::Document::ConstObject&     aJsonObject)
+void    _ProcessContainer (GpTypeStructBase&                        aStruct,
+                           const GpTypePropInfo&                    aPropInfo,
+                           const rapidjson::Document::ConstObject&  aJsonObject)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();
@@ -229,7 +228,7 @@ void    _ReadContainer (GpTypeStructBase&                           aStruct,
             auto& container = ValGetter::StructSP(aStruct, aPropInfo);
             Prepocessor::SProc(container, arraySize);
 
-            const GpTypeStructInfo& typeInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+            const GpTypeStructInfo& typeInfoBase = GpTypeManager::S().Find(aPropInfo.TypeUID()).value();
 
             for (const auto& v: array)
             {
@@ -258,7 +257,7 @@ void    _ReadContainer (GpTypeStructBase&                           aStruct,
 }
 
 template<typename T>
-T   _ReadMapKey (std::string_view aValue)
+T   _ProcessMapKey (std::string_view aValue)
 {
     constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
 
@@ -321,7 +320,7 @@ T   _ReadMapKey (std::string_view aValue)
 
 template<typename                       Key,
          template<typename...> class    ValGetter>
-void    _ReadMap    (GpTypeStructBase&                          aStruct,
+void    _ProcessMap (GpTypeStructBase&                          aStruct,
                      const GpTypePropInfo&                      aPropInfo,
                      const rapidjson::Document::ConstObject&    aJsonObject)
 {
@@ -336,7 +335,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<u_int_8>(value.GetUint64()));
             }
         } break;
@@ -347,7 +346,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<s_int_8>(value.GetInt64()));
             }
         } break;
@@ -358,7 +357,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<u_int_16>(value.GetUint64()));
             }
         } break;
@@ -369,7 +368,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<s_int_16>(value.GetInt64()));
             }
         } break;
@@ -380,7 +379,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<u_int_32>(value.GetUint64()));
             }
         } break;
@@ -391,7 +390,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<s_int_32>(value.GetInt64()));
             }
         } break;
@@ -402,7 +401,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<u_int_64>(value.GetUint64()));
             }
         } break;
@@ -413,7 +412,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<s_int_64>(value.GetInt64()));
             }
         } break;
@@ -424,7 +423,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<double>(value.GetDouble()));
             }
         } break;
@@ -435,7 +434,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   NumOps::SConvert<float>(value.GetDouble()));
             }
         } break;
@@ -446,7 +445,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   value.GetBool());
             }
         } break;
@@ -457,7 +456,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
             {
                 const auto& name    = v.name;
                 const auto& value   = v.value;
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   GpUUID::SFromString({value.GetString(), value.GetStringLength()}));
             }
         } break;
@@ -471,7 +470,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
 
                 std::string s({value.GetString(), value.GetStringLength()});
 
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   std::move(s));
             }
         } break;
@@ -486,7 +485,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
                 GpRawPtrCharR   strPtr(value.GetString(), value.GetStringLength());
                 GpBytesArray    data = GpStringOps::SToBytes(strPtr);
 
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   std::move(data));
             }
         } break;
@@ -498,7 +497,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
         {
             auto& container = ValGetter<Key>::StructSP(aStruct, aPropInfo);
 
-            const GpTypeStructInfo& typeInfoBase = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+            const GpTypeStructInfo& typeInfoBase = GpTypeManager::S().Find(aPropInfo.TypeUID()).value();
 
             for (const auto& v: aJsonObject)
             {
@@ -513,7 +512,7 @@ void    _ReadMap    (GpTypeStructBase&                          aStruct,
                 GpTypeStructBase&                       structBase      = structBaseSP.Vn();
                 GpJsonToStruct::SReadStruct(structBase, jsonObject);
 
-                container.emplace(_ReadMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
+                container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   std::move(structBaseSP));
             }
         } break;
@@ -748,7 +747,7 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         case GpType::STRUCT_SP:
         {
             GpTypeStructBase::SP&               structBaseSP    = aPropInfo.Value_StructSP(aStruct);
-            const GpTypeStructInfo&             typeInfoBase    = GpTypeManager::S().Find(aPropInfo.StructTypeUID()).value();
+            const GpTypeStructInfo&             typeInfoBase    = GpTypeManager::S().Find(aPropInfo.TypeUID()).value();
             rapidjson::Document::ConstObject    jsonObject      = mitVal.GetObject();
             const GpTypeStructInfo&             typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject, typeInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
                                                 structBaseSP    = typeInfoJson.NewInstance();
@@ -774,21 +773,21 @@ void    GpJsonToStruct::SReadValueVec (GpTypeStructBase&                        
                                        const GpTypePropInfo&                    aPropInfo,
                                        const rapidjson::Document::ConstObject&  aJsonObject)
 {
-    _ReadContainer<_PreprocVec, _InserterVec, GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject);
+    _ProcessContainer<_PreprocVec, _InserterVec, GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject);
 }
 
 void    GpJsonToStruct::SReadValueList (GpTypeStructBase&                       aStruct,
                                         const GpTypePropInfo&                   aPropInfo,
                                         const rapidjson::Document::ConstObject& aJsonObject)
 {
-    _ReadContainer<_PreprocList, _InserterList, GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject);
+    _ProcessContainer<_PreprocList, _InserterList, GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject);
 }
 
 void    GpJsonToStruct::SReadValueSet (GpTypeStructBase&                        aStruct,
                                         const GpTypePropInfo&                   aPropInfo,
                                         const rapidjson::Document::ConstObject& aJsonObject)
 {
-    _ReadContainer<_PreprocSet, _InserterSet, GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject);
+    _ProcessContainer<_PreprocSet, _InserterSet, GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject);
 }
 
 void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        aStruct,
@@ -818,43 +817,43 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
     {
         case GpType::U_INT_8:
         {
-            _ReadMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_8:
         {
-            _ReadMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::U_INT_16:
         {
-            _ReadMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_16:
         {
-            _ReadMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::U_INT_32:
         {
-            _ReadMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_32:
         {
-            _ReadMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::U_INT_64:
         {
-            _ReadMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::S_INT_64:
         {
-            _ReadMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::DOUBLE:
         {
-            _ReadMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::FLOAT:
         {
-            _ReadMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::BOOLEAN:
         {
@@ -862,15 +861,15 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
         } break;
         case GpType::UUID:
         {
-            _ReadMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::STRING:
         {
-            _ReadMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::BLOB:
         {
-            _ReadMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
         } break;
         case GpType::STRUCT:
         {
