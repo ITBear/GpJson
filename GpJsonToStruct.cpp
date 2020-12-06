@@ -216,7 +216,7 @@ void    _ProcessContainer (GpTypeStructBase&                        aStruct,
             for (const auto& v: array)
             {
                 GpRawPtrCharR strPtr(v.GetString(), v.GetStringLength());
-                Inserter::SInsert(container, GpStringOps::SToBytes(strPtr));
+                Inserter::SInsert(container, StrOps::SToBytes(strPtr));
             }
         } break;
         case GpType::STRUCT:
@@ -245,6 +245,10 @@ void    _ProcessContainer (GpTypeStructBase&                        aStruct,
         {
             THROW_GPE("Arrays of enums are not supported"_sv);
         } break;
+        case GpType::ENUM_FLAGS:
+        {
+            THROW_GPE("Arrays of enum flags are not supported"_sv);
+        } break;
         case GpType::NOT_SET:
         {
             THROW_GPE("Type "_sv + GpType::SToString(aPropInfo.Type()));
@@ -263,34 +267,34 @@ T   _ProcessMapKey (std::string_view aValue)
 
     if constexpr (type == GpType::U_INT_8)
     {
-        return NumOps::SConvert<u_int_8>(GpStringOps::SToUI64(aValue));
+        return NumOps::SConvert<u_int_8>(StrOps::SToUI64(aValue));
     } else if constexpr (type == GpType::S_INT_8)
     {
-        return NumOps::SConvert<s_int_8>(GpStringOps::SToSI64(aValue));
+        return NumOps::SConvert<s_int_8>(StrOps::SToSI64(aValue));
     } else if constexpr (type == GpType::U_INT_16)
     {
-        return NumOps::SConvert<u_int_16>(GpStringOps::SToUI64(aValue));
+        return NumOps::SConvert<u_int_16>(StrOps::SToUI64(aValue));
     } else if constexpr (type == GpType::S_INT_16)
     {
-        return NumOps::SConvert<s_int_16>(GpStringOps::SToSI64(aValue));
+        return NumOps::SConvert<s_int_16>(StrOps::SToSI64(aValue));
     } else if constexpr (type == GpType::U_INT_32)
     {
-        return NumOps::SConvert<u_int_32>(GpStringOps::SToUI64(aValue));
+        return NumOps::SConvert<u_int_32>(StrOps::SToUI64(aValue));
     } else if constexpr (type == GpType::S_INT_32)
     {
-        return NumOps::SConvert<s_int_32>(GpStringOps::SToSI64(aValue));
+        return NumOps::SConvert<s_int_32>(StrOps::SToSI64(aValue));
     } else if constexpr (type == GpType::U_INT_64)
     {
-        return NumOps::SConvert<u_int_64>(GpStringOps::SToUI64(aValue));
+        return NumOps::SConvert<u_int_64>(StrOps::SToUI64(aValue));
     } else if constexpr (type == GpType::S_INT_64)
     {
-        return NumOps::SConvert<s_int_64>(GpStringOps::SToSI64(aValue));
+        return NumOps::SConvert<s_int_64>(StrOps::SToSI64(aValue));
     } else if constexpr (type == GpType::DOUBLE)
     {
-        return GpStringOps::SToDouble_fast(aValue);
+        return StrOps::SToDouble_fast(aValue);
     } else if constexpr (type == GpType::FLOAT)
     {
-        return NumOps::SConvert<float>(GpStringOps::SToDouble_fast(aValue));
+        return NumOps::SConvert<float>(StrOps::SToDouble_fast(aValue));
     } else if constexpr (type == GpType::BOOLEAN)
     {
         GpThrowCe<std::out_of_range>("Bool as map key are not supported");
@@ -302,7 +306,7 @@ T   _ProcessMapKey (std::string_view aValue)
         return std::string(aValue);
     } else if constexpr (type == GpType::BLOB)
     {
-        return GpStringOps::SToBytes(aValue);
+        return StrOps::SToBytes(aValue);
     } else if constexpr (type == GpType::STRUCT)
     {
         GpThrowCe<std::out_of_range>("Struct as map key are not supported");
@@ -312,6 +316,9 @@ T   _ProcessMapKey (std::string_view aValue)
     } else if constexpr (type == GpType::ENUM)
     {
         GpThrowCe<std::out_of_range>("Enum as map key are not supported");
+    } else if constexpr (type == GpType::ENUM_FLAGS)
+    {
+        GpThrowCe<std::out_of_range>("Enum flags as map key are not supported");
     } else
     {
         GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'");
@@ -483,7 +490,7 @@ void    _ProcessMap (GpTypeStructBase&                          aStruct,
                 const auto& value   = v.value;
 
                 GpRawPtrCharR   strPtr(value.GetString(), value.GetStringLength());
-                GpBytesArray    data = GpStringOps::SToBytes(strPtr);
+                GpBytesArray    data = StrOps::SToBytes(strPtr);
 
                 container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   std::move(data));
@@ -519,6 +526,10 @@ void    _ProcessMap (GpTypeStructBase&                          aStruct,
         case GpType::ENUM:
         {
             THROW_GPE("enums as map value are not supported"_sv);
+        } break;
+        case GpType::ENUM_FLAGS:
+        {
+            THROW_GPE("enum flags as map value are not supported"_sv);
         } break;
         case GpType::NOT_SET:
         {
@@ -655,7 +666,7 @@ void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          
             THROW_GPE("Failed to read value from json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\n"_sv + e.what());
         } catch (...)
         {
-            THROW_GPE("Failed to read value from json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception");
+            THROW_GPE("Failed to read value from json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception"_sv);
         }
     }
 }
@@ -668,8 +679,14 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
     std::string_view    propName = aPropInfo.Name();
 
     //Find json member
-    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(rapidjson::Document::ValueType(propName.data(),
-                                                                                                         NumOps::SConvert<rapidjson::SizeType>(propName.size())));
+    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember
+    (
+        rapidjson::Document::ValueType
+        (
+            propName.data(),
+            NumOps::SConvert<rapidjson::SizeType>(propName.size())
+        )
+    );
 
     if (   (mit == aJsonObject.MemberEnd())
         || (mit->value.IsNull()))
@@ -736,7 +753,7 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         case GpType::BLOB:
         {
             GpRawPtrCharR strPtr(mitVal.GetString(), mitVal.GetStringLength());
-            aPropInfo.Value_BLOB(aStruct) = GpStringOps::SToBytes(strPtr);
+            aPropInfo.Value_BLOB(aStruct) = StrOps::SToBytes(strPtr);
         } break;
         case GpType::STRUCT:
         {
@@ -757,6 +774,16 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         case GpType::ENUM:
         {
             aPropInfo.Value_Enum(aStruct).FromString({mitVal.GetString(), mitVal.GetStringLength()});
+        } break;
+        case GpType::ENUM_FLAGS:
+        {
+            rapidjson::Document::ConstArray array       = mitVal.GetArray();
+            GpEnumFlags&                    enumFlags   = aPropInfo.Value_EnumFlags(aStruct);
+
+            for (const auto& v: array)
+            {
+                enumFlags.Set(std::string_view(v.GetString(), v.GetStringLength()));
+            }
         } break;
         case GpType::NOT_SET:
         {
@@ -882,6 +909,10 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
         case GpType::ENUM:
         {
             THROW_GPE("enums as map key are not supported"_sv);
+        } break;
+        case GpType::ENUM_FLAGS:
+        {
+            THROW_GPE("enum flags as map key are not supported"_sv);
         } break;
         case GpType::NOT_SET:
         {

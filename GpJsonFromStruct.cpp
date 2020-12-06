@@ -57,7 +57,7 @@ void    _ProcessVal (rapidjson::Value&                      aJValOut,
         aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
     } else if constexpr (type == GpType::BLOB)
     {
-        const std::string s = GpStringOps::SFromBytes(aValue);
+        const std::string s = StrOps::SFromBytes(aValue);
         aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
     } else if constexpr (type == GpType::STRUCT)
     {
@@ -76,9 +76,12 @@ void    _ProcessVal (rapidjson::Value&                      aJValOut,
     } else if constexpr (type == GpType::ENUM)
     {
         THROW_GPE("Enums are not supported"_sv);
+    } else if constexpr (type == GpType::ENUM_FLAGS)
+    {
+        THROW_GPE("Enums flags are not supported"_sv);
     } else
     {
-        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'");
+        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'"_sv);
     }
 }
 
@@ -244,7 +247,7 @@ void    _ProcessContainer (const GpTypeStructBase&              aStruct,
 
             for (const GpBytesArray& e: container)
             {
-                const std::string s = GpStringOps::SFromBytes(e);
+                const std::string s = StrOps::SFromBytes(e);
                 rapidjson::Value jv;
                 jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
 
@@ -280,6 +283,10 @@ void    _ProcessContainer (const GpTypeStructBase&              aStruct,
         case GpType::ENUM:
         {
             THROW_GPE("Arrays of enums are not supported"_sv);
+        } break;
+        case GpType::ENUM_FLAGS:
+        {
+            THROW_GPE("Arrays of enum flags are not supported"_sv);
         } break;
         case GpType::NOT_SET:
         {
@@ -416,6 +423,10 @@ void    _ProcessMap (const GpTypeStructBase&                aStruct,
         {
             THROW_GPE("enums are not supported"_sv);
         } break;
+        case GpType::ENUM_FLAGS:
+        {
+            THROW_GPE("enums flags are not supported"_sv);
+        } break;
         case GpType::NOT_SET:
         {
             THROW_GPE("Type "_sv + GpType::SToString(aPropInfo.Type()));
@@ -487,7 +498,7 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
             THROW_GPE("Failed to write value to json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\n"_sv + e.what());
         } catch (...)
         {
-            THROW_GPE("Failed to write value to json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception");
+            THROW_GPE("Failed to write value to json. Struct "_sv + typeInfo.Name() + "."_sv + propInfo.Name() + "\nReason:\nUnknown exception"_sv);
         }
     }
 
@@ -565,7 +576,7 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
         } break;
         case GpType::BLOB:
         {
-            const std::string propVal = GpStringOps::SFromBytes(aPropInfo.Value_BLOB(aStruct));
+            const std::string propVal = StrOps::SFromBytes(aPropInfo.Value_BLOB(aStruct));
             jsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aJsonAllocator);
         } break;
         case GpType::STRUCT:
@@ -592,6 +603,19 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
         {
             std::string_view propVal = aPropInfo.Value_Enum(aStruct).ToString();
             jsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aJsonAllocator);
+        } break;
+        case GpType::ENUM_FLAGS:
+        {
+            const GpEnumFlags&                  enumFlags       = aPropInfo.Value_EnumFlags(aStruct);
+            GpVector<std::string_view>          enumFlagNames   = enumFlags.ToStringViewArray();
+            rapidjson::Document::GenericValue&  jsonArray       = jsonMemberValue.SetArray();
+
+            for (std::string_view flagName: enumFlagNames)
+            {
+                rapidjson::Value jv;
+                jv.SetString(flagName.data(), NumOps::SConvert<rapidjson::SizeType>(flagName.length()), aJsonAllocator);
+                jsonArray.PushBack(jv.Move(), aJsonAllocator);
+            }
         } break;
         case GpType::NOT_SET:
         {
@@ -717,6 +741,10 @@ void    GpJsonFromStruct::SWriteValueMap (const GpTypeStructBase&               
         case GpType::ENUM:
         {
             THROW_GPE("enums as map key are not supported"_sv);
+        } break;
+        case GpType::ENUM_FLAGS:
+        {
+            THROW_GPE("enum flags as map key are not supported"_sv);
         } break;
         case GpType::NOT_SET:
         {
