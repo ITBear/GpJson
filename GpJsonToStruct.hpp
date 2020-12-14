@@ -13,7 +13,7 @@ GP_WARNING_POP()
 
 namespace GPlatform {
 
-class GpJsonToStruct
+class GPJSON_API GpJsonToStruct
 {
 public:
     CLASS_REMOVE_CTRS(GpJsonToStruct);
@@ -27,7 +27,9 @@ public:
     using FindTypeInfoResT = std::optional<std::reference_wrapper<const GpTypeStructInfo>>;
 
 public:
-    static rapidjson::Document::ConstObject SParseJsonDOM       (GpRawPtrCharRW         aJsonData,
+    static rapidjson::Document::ConstObject SParseJsonDom       (GpRawPtrCharR          aJsonData,
+                                                                 rapidjson::Document&   aJsonDOM);
+    static rapidjson::Document::ConstObject SParseJsonDomInsitu (GpRawPtrCharRW         aJsonData,
                                                                  rapidjson::Document&   aJsonDOM);
     static void                             SReadStruct         (GpTypeStructBase&                          aStruct,
                                                                  const rapidjson::Document::ConstObject&    aJsonObject);

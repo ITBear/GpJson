@@ -13,7 +13,7 @@ GP_WARNING_POP()
 
 namespace GPlatform {
 
-class GpJsonFromStruct
+class GPJSON_API GpJsonFromStruct
 {
 public:
     CLASS_REMOVE_CTRS(GpJsonFromStruct);

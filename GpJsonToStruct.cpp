@@ -564,7 +564,24 @@ const std::array<std::string_view, 18>  GpJsonToStruct::sParseErrorCodes =
     "Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
 };
 
-rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDOM (GpRawPtrCharRW aJsonData, rapidjson::Document& aJsonDOM)
+rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDom (GpRawPtrCharR aJsonData, rapidjson::Document& aJsonDOM)
+{
+    THROW_GPE_COND_CHECK_M(!aJsonData.IsEmpty(), "Json data is null"_sv);
+
+    //Check for errors
+    if (aJsonDOM.Parse(aJsonData.Ptr(), aJsonData.SizeLeft().As<size_t>()).HasParseError())
+    {
+        const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
+        THROW_GPE("JSON parse error: "_sv + sParseErrorCodes.at(int(parseErrorCode)));
+    }
+
+    //Check for root element is object
+    THROW_GPE_COND_CHECK_M(aJsonDOM.IsObject(), "Json root element must be object"_sv);
+
+    return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
+}
+
+rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDomInsitu (GpRawPtrCharRW aJsonData, rapidjson::Document& aJsonDOM)
 {
     THROW_GPE_COND_CHECK_M(!aJsonData.IsEmpty(), "Json data is null"_sv);
 

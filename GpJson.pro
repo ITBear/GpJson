@@ -26,13 +26,16 @@ SOURCES += \
 	GpJsonFromStruct.cpp \
 	GpJsonMapper.cpp \
 	GpJsonMapperFlags.cpp \
-	GpJsonToStruct.cpp
+	GpJsonToStruct.cpp \
+	GpTypeMapperJson.cpp \
+	GpTypeMapperJsonFactory.cpp
 
 HEADERS += \
     GpJsonFromStruct.hpp \
     GpJsonMapper.hpp \
     GpJsonMapperFlags.hpp \
-    GpJsonMapperTypeDetector.hpp \
     GpJsonToStruct.hpp \
     GpJson_global.hpp \
-    GpJson.hpp
+    GpJson.hpp \
+    GpTypeMapperJson.hpp \
+    GpTypeMapperJsonFactory.hpp

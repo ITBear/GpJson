@@ -4,17 +4,16 @@
 
 namespace GPlatform {
 
-class GpJsonMapperTypeDetector;
-
 class GPJSON_API GpJsonMapper
 {
 public:
     CLASS_REMOVE_CTRS(GpJsonMapper)
 
 public:
+    static GpTypeStructBase::SP     SFromJson       (GpRawPtrCharR aJsonData);
+    static GpTypeStructBase::SP     SFromJson       (GpRawPtrCharR aJsonData, const GpTypeStructInfo& aTypeInfo);
     static GpTypeStructBase::SP     SFromJsonInsitu (GpRawPtrCharRW aJsonData);
     static GpTypeStructBase::SP     SFromJsonInsitu (GpRawPtrCharRW aJsonData, const GpTypeStructInfo& aTypeInfo);
-    static GpTypeStructBase::SP     SFromJsonInsitu (GpRawPtrCharRW aJsonData, const GpJsonMapperTypeDetector& aTypeDetector);
     static void                     SFromJsonInsitu (GpRawPtrCharRW aJsonData, GpTypeStructBase& aOut);
 
     template <typename T> static
