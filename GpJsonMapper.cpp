@@ -4,7 +4,10 @@
 
 namespace GPlatform {
 
-GpTypeStructBase::SP    GpJsonMapper::SFromJson (GpRawPtrCharR aJsonData)
+GpTypeStructBase::SP    GpJsonMapper::SFromJson
+(
+    GpRawPtrCharR aJsonData
+)
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject      = GpJsonToStruct::SParseJsonDom(aJsonData, jsonDOM);
@@ -23,7 +26,11 @@ GpTypeStructBase::SP    GpJsonMapper::SFromJson (GpRawPtrCharR aJsonData)
     return resStruct;
 }
 
-GpTypeStructBase::SP    GpJsonMapper::SFromJson (GpRawPtrCharR aJsonData, const GpTypeStructInfo& aTypeInfo)
+GpTypeStructBase::SP    GpJsonMapper::SFromJson
+(
+    GpRawPtrCharR           aJsonData,
+    const GpTypeStructInfo& aTypeInfo
+)
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject  = GpJsonToStruct::SParseJsonDom(aJsonData, jsonDOM);
@@ -37,7 +44,18 @@ GpTypeStructBase::SP    GpJsonMapper::SFromJson (GpRawPtrCharR aJsonData, const 
     return resStruct;
 }
 
-GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData)
+void    GpJsonMapper::SFromJson (GpRawPtrCharR aJsonData, GpTypeStructBase& aOut)
+{
+    rapidjson::Document                 jsonDOM;
+    rapidjson::Document::ConstObject    jsonObject  = GpJsonToStruct::SParseJsonDom(aJsonData, jsonDOM);
+
+    GpJsonToStruct::SReadStruct(aOut, jsonObject);
+}
+
+GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu
+(
+    GpRawPtrCharRW aJsonData
+)
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject      = GpJsonToStruct::SParseJsonDomInsitu(aJsonData, jsonDOM);
@@ -56,7 +74,11 @@ GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData)
     return resStruct;
 }
 
-GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData, const GpTypeStructInfo& aTypeInfo)
+GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu
+(
+    GpRawPtrCharRW          aJsonData,
+    const GpTypeStructInfo& aTypeInfo
+)
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject  = GpJsonToStruct::SParseJsonDomInsitu(aJsonData, jsonDOM);
@@ -70,7 +92,11 @@ GpTypeStructBase::SP    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData,
     return resStruct;
 }
 
-void    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData, GpTypeStructBase& aOut)
+void    GpJsonMapper::SFromJsonInsitu
+(
+    GpRawPtrCharRW      aJsonData,
+    GpTypeStructBase&   aOut
+)
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject  = GpJsonToStruct::SParseJsonDomInsitu(aJsonData, jsonDOM);
@@ -78,8 +104,11 @@ void    GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData, GpTypeStructBas
     GpJsonToStruct::SReadStruct(aOut, jsonObject);
 }
 
-std::string     GpJsonMapper::SToJson (const GpTypeStructBase&  aStruct,
-                                       const GpJsonMapperFlags  aFlags)
+std::string GpJsonMapper::SToJson
+(
+    const GpTypeStructBase& aStruct,
+    const GpJsonMapperFlags aFlags
+)
 {
     rapidjson::Document jsonDOM;
 
@@ -87,9 +116,12 @@ std::string     GpJsonMapper::SToJson (const GpTypeStructBase&  aStruct,
     return GpJsonFromStruct::SToString(jsonDOM);
 }
 
-void    GpJsonMapper::SToJson (const GpTypeStructBase&  aStruct,
-                               GpByteWriter&            aWriter,
-                               const GpJsonMapperFlags  aFlags)
+void    GpJsonMapper::SToJson
+(
+    const GpTypeStructBase& aStruct,
+    GpByteWriter&           aWriter,
+    const GpJsonMapperFlags aFlags
+)
 {
     rapidjson::Document jsonDOM;
 

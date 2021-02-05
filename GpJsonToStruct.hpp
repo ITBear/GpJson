@@ -33,7 +33,7 @@ public:
                                                                  rapidjson::Document&   aJsonDOM);
     static void                             SReadStruct         (GpTypeStructBase&                          aStruct,
                                                                  const rapidjson::Document::ConstObject&    aJsonObject);
-    static const GpTypeStructInfo&          SCheckTypeInfo      (const rapidjson::Document::ConstObject&    aJonObject,
+    static const GpTypeStructInfo&          SCheckTypeInfo      (const rapidjson::Document::ConstObject&    aJsonObject,
                                                                  const GpTypeStructInfo&                    aTypeInfoBase,
                                                                  const CheckMode                            aCheckMode);
     static FindTypeInfoResT                 SFindTypeInfo       (const rapidjson::Document::ConstObject&    aJsonObject);

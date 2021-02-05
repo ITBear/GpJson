@@ -12,6 +12,11 @@ public:
 public:
     static GpTypeStructBase::SP     SFromJson       (GpRawPtrCharR aJsonData);
     static GpTypeStructBase::SP     SFromJson       (GpRawPtrCharR aJsonData, const GpTypeStructInfo& aTypeInfo);
+    static void                     SFromJson       (GpRawPtrCharR aJsonData, GpTypeStructBase& aOut);
+
+    template <typename T> static
+    typename T::SP                  SFromJson       (GpRawPtrCharR aJsonData);
+
     static GpTypeStructBase::SP     SFromJsonInsitu (GpRawPtrCharRW aJsonData);
     static GpTypeStructBase::SP     SFromJsonInsitu (GpRawPtrCharRW aJsonData, const GpTypeStructInfo& aTypeInfo);
     static void                     SFromJsonInsitu (GpRawPtrCharRW aJsonData, GpTypeStructBase& aOut);
@@ -25,6 +30,13 @@ public:
                                                      GpByteWriter&              aWriter,
                                                      const GpJsonMapperFlags    aFlags);
 };
+
+template <typename T>
+typename T::SP  GpJsonMapper::SFromJson (GpRawPtrCharR aJsonData)
+{
+    GpTypeStructBase::SP obj = SFromJson(aJsonData, T::STypeInfo());
+    return obj.CastAs<typename T::SP>();
+}
 
 template <typename T>
 typename T::SP  GpJsonMapper::SFromJsonInsitu (GpRawPtrCharRW aJsonData)

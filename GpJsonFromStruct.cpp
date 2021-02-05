@@ -7,90 +7,15 @@
 
 namespace GPlatform {
 
-template<typename T>
-void    _ProcessVal (rapidjson::Value&                      aJValOut,
-                     const T&                               aValue,
-                     rapidjson::Document::AllocatorType&    aJsonAllocator,
-                     const GpJsonMapperFlags                aFlags)
-{
-    constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
-
-    if constexpr (type == GpType::U_INT_8)
-    {
-        aJValOut.SetUint64(aValue);
-    } else if constexpr (type == GpType::S_INT_8)
-    {
-        aJValOut.SetInt64(aValue);
-    } else if constexpr (type == GpType::U_INT_16)
-    {
-        aJValOut.SetUint64(aValue);
-    } else if constexpr (type == GpType::S_INT_16)
-    {
-        aJValOut.SetInt64(aValue);
-    } else if constexpr (type == GpType::U_INT_32)
-    {
-        aJValOut.SetUint64(aValue);
-    } else if constexpr (type == GpType::S_INT_32)
-    {
-        aJValOut.SetInt64(aValue);
-    } else if constexpr (type == GpType::U_INT_64)
-    {
-        aJValOut.SetUint64(aValue);
-    } else if constexpr (type == GpType::S_INT_64)
-    {
-        aJValOut.SetInt64(aValue);
-    } else if constexpr (type == GpType::DOUBLE)
-    {
-        aJValOut.SetDouble(aValue);
-    } else if constexpr (type == GpType::FLOAT)
-    {
-        aJValOut.SetDouble(double(aValue));
-    } else if constexpr (type == GpType::BOOLEAN)
-    {
-        aJValOut.SetBool(aValue);
-    } else if constexpr (type == GpType::UUID)
-    {
-        const std::string s = aValue.ToString();
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
-    } else if constexpr (type == GpType::STRING)
-    {
-        aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
-    } else if constexpr (type == GpType::BLOB)
-    {
-        const std::string s = StrOps::SFromBytes(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
-    } else if constexpr (type == GpType::STRUCT)
-    {
-        THROW_GPE("Struct are not supported, use arrays of struct::SP instead"_sv);
-    } else if constexpr (type == GpType::STRUCT_SP)
-    {
-        if (aValue.IsNULL())
-        {
-            aJValOut.SetNull();
-        } else
-        {
-            const GpTypeStructBase&             structBase  = aValue.VCn();
-            rapidjson::Document::GenericValue&  obj         = aJValOut.SetObject();
-            GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aFlags);
-        }
-    } else if constexpr (type == GpType::ENUM)
-    {
-        THROW_GPE("Enums are not supported"_sv);
-    } else if constexpr (type == GpType::ENUM_FLAGS)
-    {
-        THROW_GPE("Enums flags are not supported"_sv);
-    } else
-    {
-        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'"_sv);
-    }
-}
-
 template<typename ValGetter>
-void    _ProcessContainer (const GpTypeStructBase&              aStruct,
-                           const GpTypePropInfo&                aPropInfo,
-                           rapidjson::Document::GenericValue&   aJsonObject,
-                           rapidjson::Document::AllocatorType&  aJsonAllocator,
-                           const GpJsonMapperFlags              aFlags)
+void    _ProcessContainer
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();
@@ -173,7 +98,9 @@ void    _ProcessContainer (const GpTypeStructBase&              aStruct,
                 jsonArray.PushBack(rapidjson::Value().SetUint64(e), aJsonAllocator);
             }
         } break;
-        case GpType::S_INT_64:
+        case GpType::S_INT_64:  [[fallthrough]];
+        case GpType::UNIX_TS_S: [[fallthrough]];
+        case GpType::UNIX_TS_MS:
         {
             auto& container = ValGetter::SInt64(aStruct, aPropInfo);
             jsonArray.Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aJsonAllocator);
@@ -301,39 +228,218 @@ void    _ProcessContainer (const GpTypeStructBase&              aStruct,
     aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
 }
 
+template<typename T>
+void    _ProcessMapKey
+(
+    rapidjson::Value&                   aJValOut,
+    const T&                            aValue,
+    rapidjson::Document::AllocatorType& aJsonAllocator
+)
+{
+    constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
+
+    if constexpr (type == GpType::U_INT_8)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::S_INT_8)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::U_INT_16)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::S_INT_16)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::U_INT_32)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::S_INT_32)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::U_INT_64)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::S_INT_64)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::UNIX_TS_S)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::UNIX_TS_MS)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::DOUBLE)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::FLOAT)
+    {
+        const std::string s = StrOps::SToString(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::BOOLEAN)
+    {
+        std::string_view s = aValue ? "true"_sv : "false"_sv;
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::UUID)
+    {
+        const std::string s = aValue.ToString();
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::STRING)
+    {
+        aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::BLOB)
+    {
+        const std::string s = StrOps::SFromBytes(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::STRUCT)
+    {
+        THROW_GPE("Struct are not supported, use arrays of struct::SP instead"_sv);
+    } else if constexpr (type == GpType::STRUCT_SP)
+    {
+        THROW_GPE("Struct SP are not supported, use arrays of struct::SP instead"_sv);
+    } else if constexpr (type == GpType::ENUM)
+    {
+        THROW_GPE("Enums are not supported"_sv);
+    } else if constexpr (type == GpType::ENUM_FLAGS)
+    {
+        THROW_GPE("Enums flags are not supported"_sv);
+    } else
+    {
+        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'"_sv);
+    }
+}
+
+template<typename T>
+void    _ProcessMapVal
+(
+    rapidjson::Value&                   aJValOut,
+    const T&                            aValue,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
+{
+    constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
+
+    if constexpr (type == GpType::U_INT_8)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_8)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::U_INT_16)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_16)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::U_INT_32)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_32)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::U_INT_64)
+    {
+        aJValOut.SetUint64(aValue);
+    } else if constexpr (type == GpType::S_INT_64)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::UNIX_TS_S)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::UNIX_TS_MS)
+    {
+        aJValOut.SetInt64(aValue);
+    } else if constexpr (type == GpType::DOUBLE)
+    {
+        aJValOut.SetDouble(aValue);
+    } else if constexpr (type == GpType::FLOAT)
+    {
+        aJValOut.SetDouble(double(aValue));
+    } else if constexpr (type == GpType::BOOLEAN)
+    {
+        aJValOut.SetBool(aValue);
+    } else if constexpr (type == GpType::UUID)
+    {
+        const std::string s = aValue.ToString();
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::STRING)
+    {
+        aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::BLOB)
+    {
+        const std::string s = StrOps::SFromBytes(aValue);
+        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+    } else if constexpr (type == GpType::STRUCT)
+    {
+        THROW_GPE("Struct are not supported, use arrays of struct::SP instead"_sv);
+    } else if constexpr (type == GpType::STRUCT_SP)
+    {
+        if (aValue.IsNULL())
+        {
+            aJValOut.SetNull();
+        } else
+        {
+            const GpTypeStructBase&             structBase  = aValue.VCn();
+            rapidjson::Document::GenericValue&  obj         = aJValOut.SetObject();
+            GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aFlags);
+        }
+    } else if constexpr (type == GpType::ENUM)
+    {
+        THROW_GPE("Enums are not supported"_sv);
+    } else if constexpr (type == GpType::ENUM_FLAGS)
+    {
+        THROW_GPE("Enums flags are not supported"_sv);
+    } else
+    {
+        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpTypeUtils::STypeName<T>() + "'"_sv);
+    }
+}
+
 template<typename KeyT,
          typename CT>
-void    _ProcessMapContainer (const CT&                             aContainer,
-                              rapidjson::Document::GenericValue&    aJsonMap,
-                              rapidjson::Document::AllocatorType&   aJsonAllocator,
-                              const GpJsonMapperFlags               aFlags)
+void    _ProcessMapContainer
+(
+    const CT&                           aContainer,
+    rapidjson::Document::GenericValue&  aJsonMap,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
-    //aJsonMap.Reserve(NumOps::SConvert<rapidjson::SizeType>(aContainer.size()), aJsonAllocator);
-
     for (const auto&[k, v]: aContainer)
     {
         //Key
         rapidjson::Value jMapElementKey;
-        _ProcessVal(jMapElementKey, k, aJsonAllocator, aFlags);
+        _ProcessMapKey(jMapElementKey, k, aJsonAllocator);
 
         //Value
         rapidjson::Value jMapElementVal;
-        _ProcessVal(jMapElementVal, v, aJsonAllocator, aFlags);
+        _ProcessMapVal(jMapElementVal, v, aJsonAllocator, aFlags);
 
-        rapidjson::Value                    jMapElement;
-        //rapidjson::Document::GenericValue&    jMapElementObj = jMapElement.SetObject();
-        //jMapElementObj.AddMember(jMapElementKey.Move(), jMapElementVal.Move(), aJsonAllocator);
         aJsonMap.AddMember(jMapElementKey.Move(), jMapElementVal.Move(), aJsonAllocator);
     }
 }
 
 template<typename                       Key,
          template<typename...> class    ValGetter>
-void    _ProcessMap (const GpTypeStructBase&                aStruct,
-                     const GpTypePropInfo&                  aPropInfo,
-                     rapidjson::Document::GenericValue&     aJsonObject,
-                     rapidjson::Document::AllocatorType&    aJsonAllocator,
-                     const GpJsonMapperFlags                aFlags)
+void    _ProcessMap
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     const GpType::EnumT                 propType    = aPropInfo.Type();
     rapidjson::Document::GenericValue&  jsonMap     = aJsonObject;
@@ -375,7 +481,9 @@ void    _ProcessMap (const GpTypeStructBase&                aStruct,
             auto& container = ValGetter<Key>::UInt64(aStruct, aPropInfo);
             _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
         } break;
-        case GpType::S_INT_64:
+        case GpType::S_INT_64:   [[fallthrough]];
+        case GpType::UNIX_TS_S:  [[fallthrough]];
+        case GpType::UNIX_TS_MS:
         {
             auto& container = ValGetter<Key>::SInt64(aStruct, aPropInfo);
             _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
@@ -448,16 +556,22 @@ std::string GpJsonFromStruct::SToString (const rapidjson::Document& aJsonDOM)
     return std::string(buffer.GetString(), buffer.GetSize());
 }
 
-void    GpJsonFromStruct::SToString (const rapidjson::Document& aJsonDOM,
-                                     GpByteWriter&              aWriter)
+void    GpJsonFromStruct::SToString
+(
+    const rapidjson::Document&  aJsonDOM,
+    GpByteWriter&               aWriter
+)
 {
     aWriter.Bytes(SToString(aJsonDOM));
 }
 
-void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
-                                  rapidjson::Document::GenericValue&    aJsonObject,
-                                  rapidjson::Document::AllocatorType&   aJsonAllocator,
-                                  const GpJsonMapperFlags               aFlags)
+void    GpJsonFromStruct::SWrite
+(
+    const GpTypeStructBase&             aStruct,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     const GpTypeStructInfo& typeInfo    = aStruct.TypeInfo();
     const auto&             props       = typeInfo.Props();
@@ -469,6 +583,7 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
 
         n.SetString("@", aJsonAllocator);
         v.SetString(structUidStr.data(), NumOps::SConvert<rapidjson::SizeType>(structUidStr.length()), aJsonAllocator);
+
         aJsonObject.AddMember(n.Move(), v.Move(), aJsonAllocator);
     }
 
@@ -504,11 +619,14 @@ void    GpJsonFromStruct::SWrite (const GpTypeStructBase&               aStruct,
 
 }
 
-void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStruct,
-                                       const GpTypePropInfo&                aPropInfo,
-                                       rapidjson::Document::GenericValue&   aJsonObject,
-                                       rapidjson::Document::AllocatorType&  aJsonAllocator,
-                                       const GpJsonMapperFlags              aFlags)
+void    GpJsonFromStruct::SWriteValue
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     const GpType::EnumT propType = aPropInfo.Type();
     std::string_view    propName = aPropInfo.Name();
@@ -548,7 +666,9 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
         {
             jsonMemberValue.SetUint64(aPropInfo.Value_UInt64(aStruct));
         } break;
-        case GpType::S_INT_64:
+        case GpType::S_INT_64:   [[fallthrough]];
+        case GpType::UNIX_TS_S:  [[fallthrough]];
+        case GpType::UNIX_TS_MS:
         {
             jsonMemberValue.SetInt64(aPropInfo.Value_SInt64(aStruct));
         } break;
@@ -630,38 +750,50 @@ void    GpJsonFromStruct::SWriteValue (const GpTypeStructBase&              aStr
     aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
 }
 
-void    GpJsonFromStruct::SWriteValueVec (const GpTypeStructBase&               aStruct,
-                                          const GpTypePropInfo&                 aPropInfo,
-                                          rapidjson::Document::GenericValue&    aJsonObject,
-                                          rapidjson::Document::AllocatorType&   aJsonAllocator,
-                                          const GpJsonMapperFlags               aFlags)
+void    GpJsonFromStruct::SWriteValueVec
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     _ProcessContainer<GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
 }
 
-void    GpJsonFromStruct::SWriteValueList (const GpTypeStructBase&              aStruct,
-                                           const GpTypePropInfo&                aPropInfo,
-                                           rapidjson::Document::GenericValue&   aJsonObject,
-                                           rapidjson::Document::AllocatorType&  aJsonAllocator,
-                                           const GpJsonMapperFlags              aFlags)
+void    GpJsonFromStruct::SWriteValueList
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     _ProcessContainer<GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
 }
 
-void    GpJsonFromStruct::SWriteValueSet (const GpTypeStructBase&               aStruct,
-                                          const GpTypePropInfo&                 aPropInfo,
-                                          rapidjson::Document::GenericValue&    aJsonObject,
-                                          rapidjson::Document::AllocatorType&   aJsonAllocator,
-                                          const GpJsonMapperFlags               aFlags)
+void    GpJsonFromStruct::SWriteValueSet
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     _ProcessContainer<GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
 }
 
-void    GpJsonFromStruct::SWriteValueMap (const GpTypeStructBase&               aStruct,
-                                          const GpTypePropInfo&                 aPropInfo,
-                                          rapidjson::Document::GenericValue&    aJsonObject,
-                                          rapidjson::Document::AllocatorType&   aJsonAllocator,
-                                          const GpJsonMapperFlags               aFlags)
+void    GpJsonFromStruct::SWriteValueMap
+(
+    const GpTypeStructBase&             aStruct,
+    const GpTypePropInfo&               aPropInfo,
+    rapidjson::Document::GenericValue&  aJsonObject,
+    rapidjson::Document::AllocatorType& aJsonAllocator,
+    const GpJsonMapperFlags             aFlags
+)
 {
     const GpType::EnumT keyType     = aPropInfo.ContainerKeyType();
     std::string_view    propName    = aPropInfo.Name();
@@ -702,7 +834,9 @@ void    GpJsonFromStruct::SWriteValueMap (const GpTypeStructBase&               
         {
             _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
-        case GpType::S_INT_64:
+        case GpType::S_INT_64:   [[fallthrough]];
+        case GpType::UNIX_TS_S:  [[fallthrough]];
+        case GpType::UNIX_TS_MS:
         {
             _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
         } break;
@@ -758,6 +892,5 @@ void    GpJsonFromStruct::SWriteValueMap (const GpTypeStructBase&               
 
     aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
 }
-
 
 }//namespace GPlatform
