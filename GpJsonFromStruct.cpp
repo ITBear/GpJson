@@ -1,7 +1,5 @@
 #include "GpJsonFromStruct.hpp"
 
-#define RAPIDJSON_ASSERT(X) THROW_GPE_COND_CHECK_M(X, "Json processing error");
-
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
@@ -174,7 +172,7 @@ void    _ProcessContainer
 
             for (const GpBytesArray& e: container)
             {
-                const std::string s = StrOps::SFromBytes(e);
+                const std::string s = GpBase64::SEncodeToStr(e, 0_cnt);/*StrOps::SFromBytes(e);*/
                 rapidjson::Value jv;
                 jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
 
@@ -299,7 +297,7 @@ void    _ProcessMapKey
         aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
     } else if constexpr (type == GpType::BLOB)
     {
-        const std::string s = StrOps::SFromBytes(aValue);
+        const std::string s = GpBase64::SEncodeToStr(aValue, 0_cnt);/*StrOps::SFromBytes(aValue);*/
         aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
     } else if constexpr (type == GpType::STRUCT)
     {
@@ -378,7 +376,7 @@ void    _ProcessMapVal
         aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
     } else if constexpr (type == GpType::BLOB)
     {
-        const std::string s = StrOps::SFromBytes(aValue);
+        const std::string s = GpBase64::SEncodeToStr(aValue, 0_cnt);/*StrOps::SFromBytes(aValue);*/
         aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
     } else if constexpr (type == GpType::STRUCT)
     {
@@ -696,7 +694,7 @@ void    GpJsonFromStruct::SWriteValue
         } break;
         case GpType::BLOB:
         {
-            const std::string propVal = StrOps::SFromBytes(aPropInfo.Value_BLOB(aStruct));
+            const std::string propVal = GpBase64::SEncodeToStr(aPropInfo.Value_BLOB(aStruct), 0_cnt);/*StrOps::SFromBytes(aPropInfo.Value_BLOB(aStruct));*/
             jsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aJsonAllocator);
         } break;
         case GpType::STRUCT:

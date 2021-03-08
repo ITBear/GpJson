@@ -85,7 +85,11 @@ void    _ProcessContainer (GpTypeStructBase&                        aStruct,
 
     const auto& mitVal = mit->value;
 
-    THROW_GPE_COND_CHECK_M(mitVal.IsArray(), "Json value '"_sv + propName + "' must be array"_sv);
+    THROW_GPE_COND
+    (
+        mitVal.IsArray(),
+        "Json value '"_sv + propName + "' must be array"_sv
+    );
 
     rapidjson::Document::ConstArray array       = mitVal.GetArray();
     const size_t                    arraySize   = array.Size();
@@ -218,7 +222,7 @@ void    _ProcessContainer (GpTypeStructBase&                        aStruct,
             for (const auto& v: array)
             {
                 GpRawPtrCharR strPtr(v.GetString(), v.GetStringLength());
-                Inserter::SInsert(container, StrOps::SToBytes(strPtr));
+                Inserter::SInsert(container, GpBase64::SDecodeToByteArray(strPtr)/*StrOps::SToBytes(strPtr)*/);
             }
         } break;
         case GpType::STRUCT:
@@ -314,7 +318,7 @@ T   _ProcessMapKey (std::string_view aValue)
         return std::string(aValue);
     } else if constexpr (type == GpType::BLOB)
     {
-        return StrOps::SToBytes(aValue);
+        return GpBase64::SDecodeToByteArray(aValue);/*StrOps::SToBytes(aValue);*/
     } else if constexpr (type == GpType::STRUCT)
     {
         GpThrowCe<std::out_of_range>("Struct as map key are not supported");
@@ -500,7 +504,7 @@ void    _ProcessMap (GpTypeStructBase&                          aStruct,
                 const auto& value   = v.value;
 
                 GpRawPtrCharR   strPtr(value.GetString(), value.GetStringLength());
-                GpBytesArray    data = StrOps::SToBytes(strPtr);
+                GpBytesArray    data = GpBase64::SDecodeToByteArray(strPtr);/*StrOps::SToBytes(strPtr);*/
 
                 container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   std::move(data));
@@ -576,7 +580,11 @@ const std::array<std::string_view, 18>  GpJsonToStruct::sParseErrorCodes =
 
 rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDom (GpRawPtrCharR aJsonData, rapidjson::Document& aJsonDOM)
 {
-    THROW_GPE_COND_CHECK_M(!aJsonData.IsEmpty(), "Json data is null"_sv);
+    THROW_GPE_COND
+    (
+        !aJsonData.IsEmpty(),
+        "Json data is null"_sv
+    );
 
     //Check for errors
     if (aJsonDOM.Parse(aJsonData.Ptr(), aJsonData.SizeLeft().As<size_t>()).HasParseError())
@@ -586,14 +594,22 @@ rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDom (GpRawPtrCharR
     }
 
     //Check for root element is object
-    THROW_GPE_COND_CHECK_M(aJsonDOM.IsObject(), "Json root element must be object"_sv);
+    THROW_GPE_COND
+    (
+        aJsonDOM.IsObject(),
+        "Json root element must be object"_sv
+    );
 
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
 }
 
 rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDomInsitu (GpRawPtrCharRW aJsonData, rapidjson::Document& aJsonDOM)
 {
-    THROW_GPE_COND_CHECK_M(!aJsonData.IsEmpty(), "Json data is null"_sv);
+    THROW_GPE_COND
+    (
+        !aJsonData.IsEmpty(),
+        "Json data is null"_sv
+    );
 
     //Check for errors
     if (aJsonDOM.ParseInsitu(aJsonData.Ptr()).HasParseError())
@@ -603,7 +619,11 @@ rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDomInsitu (GpRawPt
     }
 
     //Check for root element is object
-    THROW_GPE_COND_CHECK_M(aJsonDOM.IsObject(), "Json root element must be object"_sv);
+    THROW_GPE_COND
+    (
+        aJsonDOM.IsObject(),
+        "Json root element must be object"_sv
+    );
 
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
 }
@@ -691,7 +711,11 @@ GpJsonToStruct::FindTypeInfoResT    GpJsonToStruct::SFindTypeInfo (const rapidjs
     //Find struct info by uid
     const auto structUidOpt = GpTypeManager::S().Find(structUID);
 
-    THROW_GPE_COND_CHECK_M(structUidOpt.has_value(), "Struct info was not found by uid = '"_sv + structUID.ToString() + "'"_sv);
+    THROW_GPE_COND
+    (
+        structUidOpt.has_value(),
+        "Struct info was not found by uid = '"_sv + structUID.ToString() + "'"_sv
+    );
 
      return structUidOpt.value();
 }
@@ -780,7 +804,7 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         case GpType::BLOB:
         {
             GpRawPtrCharR strPtr(mitVal.GetString(), mitVal.GetStringLength());
-            aPropInfo.Value_BLOB(aStruct) = StrOps::SToBytes(strPtr);
+            aPropInfo.Value_BLOB(aStruct) = GpBase64::SDecodeToByteArray(strPtr);/*StrOps::SToBytes(strPtr)*/;
         } break;
         case GpType::STRUCT:
         {
@@ -863,7 +887,11 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
 
     const auto& mitVal = mit->value;
 
-    THROW_GPE_COND_CHECK_M(mitVal.IsObject(), "Json value '"_sv + propName + "' must be object"_sv);
+    THROW_GPE_COND
+    (
+        mitVal.IsObject(),
+        "Json value '"_sv + propName + "' must be object"_sv
+    );
 
     rapidjson::Document::ConstObject jObj = mitVal.GetObject();
 

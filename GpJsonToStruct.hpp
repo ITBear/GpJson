@@ -2,7 +2,7 @@
 
 #include "GpJson_global.hpp"
 
-#define RAPIDJSON_ASSERT(X) THROW_GPE_COND_CHECK_M(X, "Json processing error");
+#define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_GPE_COND(X, "Json processing error"_sv);
 
 GP_WARNING_PUSH()
 GP_WARNING_DISABLE(switch-enum)
