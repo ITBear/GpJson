@@ -88,7 +88,7 @@ void    _ProcessContainer (GpTypeStructBase&                        aStruct,
     THROW_GPE_COND
     (
         mitVal.IsArray(),
-        "Json value '"_sv + propName + "' must be array"_sv
+        [&](){return "Json value '"_sv + propName + "' must be array"_sv;}
     );
 
     rapidjson::Document::ConstArray array       = mitVal.GetArray();
@@ -714,7 +714,7 @@ GpJsonToStruct::FindTypeInfoResT    GpJsonToStruct::SFindTypeInfo (const rapidjs
     THROW_GPE_COND
     (
         structUidOpt.has_value(),
-        "Struct info was not found by uid = '"_sv + structUID.ToString() + "'"_sv
+        [&](){return "Struct info was not found by uid = '"_sv + structUID.ToString() + "'"_sv;}
     );
 
      return structUidOpt.value();
@@ -890,7 +890,7 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
     THROW_GPE_COND
     (
         mitVal.IsObject(),
-        "Json value '"_sv + propName + "' must be object"_sv
+        [&](){return "Json value '"_sv + propName + "' must be object"_sv;}
     );
 
     rapidjson::Document::ConstObject jObj = mitVal.GetObject();
