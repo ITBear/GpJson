@@ -21,14 +21,20 @@ GpTypeStructBase::SP    GpTypeMapperJson::ToStruct (GpRawPtrByteR aData) const
     return GpJsonMapper::SFromJson(aData);
 }
 
-GpTypeStructBase::SP    GpTypeMapperJson::ToStruct (GpRawPtrByteR           aData,
-                                                    const GpTypeStructInfo& aTypeInfo) const
+GpTypeStructBase::SP    GpTypeMapperJson::ToStruct
+(
+    GpRawPtrByteR           aData,
+    const GpTypeStructInfo& aTypeInfo
+) const
 {
     return GpJsonMapper::SFromJson(aData, aTypeInfo);
 }
 
-void    GpTypeMapperJson::FromStruct (const GpTypeStructBase&   aStruct,
-                                      GpByteWriter&             aWriter) const
+void    GpTypeMapperJson::FromStruct
+(
+    const GpTypeStructBase& aStruct,
+    GpByteWriter&           aWriter
+) const
 {
     GpJsonMapper::SToJson(aStruct, aWriter, iFlags);
 }
