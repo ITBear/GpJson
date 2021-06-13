@@ -12,7 +12,8 @@ void    _ProcessContainer
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
     const GpType::EnumT propType = aPropInfo.Type();
@@ -21,7 +22,11 @@ void    _ProcessContainer
     rapidjson::Value jsonMemberName;
     rapidjson::Value jsonMemberValue;
 
-    jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    if (!aIsAsTuple)
+    {
+        jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    }
+
     rapidjson::Document::GenericValue& jsonArray = jsonMemberValue.SetArray();
 
     switch (propType)
@@ -198,8 +203,9 @@ void    _ProcessContainer
                 } else
                 {
                     const GpTypeStructBase&             structBase  = e.VCn();
-                    rapidjson::Document::GenericValue&  obj         = jv.SetObject();
-                    GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aFlags);
+                    const bool                          isAsTuple   = aPropInfo.FlagTest(GpTypePropFlag::AS_TUPLE);
+                    rapidjson::Document::GenericValue&  obj         = isAsTuple ? jv.SetArray() : jv.SetObject();
+                    GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aJsonMapperFlags, isAsTuple);
                 }
 
                 jsonArray.PushBack(jv.Move(), aJsonAllocator);
@@ -223,7 +229,13 @@ void    _ProcessContainer
         }
     }
 
-    aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+    if (aIsAsTuple)
+    {
+        aJsonObject.PushBack(jsonMemberValue.Move(), aJsonAllocator);
+    } else
+    {
+        aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+    }
 }
 
 template<typename T>
@@ -322,8 +334,9 @@ void    _ProcessMapVal
 (
     rapidjson::Value&                   aJValOut,
     const T&                            aValue,
+    const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags
 )
 {
     constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
@@ -389,8 +402,9 @@ void    _ProcessMapVal
         } else
         {
             const GpTypeStructBase&             structBase  = aValue.VCn();
-            rapidjson::Document::GenericValue&  obj         = aJValOut.SetObject();
-            GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aFlags);
+            const bool                          isAsTuple   = aPropInfo.FlagTest(GpTypePropFlag::AS_TUPLE);
+            rapidjson::Document::GenericValue&  obj         = isAsTuple ? aJValOut.SetArray() : aJValOut.SetObject();
+            GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aJsonMapperFlags, isAsTuple);
         }
     } else if constexpr (type == GpType::ENUM)
     {
@@ -409,9 +423,10 @@ template<typename KeyT,
 void    _ProcessMapContainer
 (
     const CT&                           aContainer,
+    const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonMap,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags
 )
 {
     for (const auto&[k, v]: aContainer)
@@ -422,7 +437,7 @@ void    _ProcessMapContainer
 
         //Value
         rapidjson::Value jMapElementVal;
-        _ProcessMapVal(jMapElementVal, v, aJsonAllocator, aFlags);
+        _ProcessMapVal(jMapElementVal, v, aPropInfo, aJsonAllocator, aJsonMapperFlags);
 
         aJsonMap.AddMember(jMapElementKey.Move(), jMapElementVal.Move(), aJsonAllocator);
     }
@@ -436,7 +451,7 @@ void    _ProcessMap
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags
 )
 {
     const GpType::EnumT                 propType    = aPropInfo.Type();
@@ -447,74 +462,74 @@ void    _ProcessMap
         case GpType::U_INT_8:
         {
             auto& container = ValGetter<Key>::UInt8(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_8:
         {
             auto& container = ValGetter<Key>::SInt8(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::U_INT_16:
         {
             auto& container = ValGetter<Key>::UInt16(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_16:
         {
             auto& container = ValGetter<Key>::SInt16(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::U_INT_32:
         {
             auto& container = ValGetter<Key>::UInt32(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_32:
         {
             auto& container = ValGetter<Key>::SInt32(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::U_INT_64:
         {
             auto& container = ValGetter<Key>::UInt64(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_64:   [[fallthrough]];
         case GpType::UNIX_TS_S:  [[fallthrough]];
         case GpType::UNIX_TS_MS:
         {
             auto& container = ValGetter<Key>::SInt64(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::DOUBLE:
         {
             auto& container = ValGetter<Key>::Double(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::FLOAT:
         {
             auto& container = ValGetter<Key>::Float(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::BOOLEAN:
         {
             auto& container = ValGetter<Key>::Bool(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::UUID:
         {
             auto& container = ValGetter<Key>::UUID(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::STRING:
         {
             auto& container = ValGetter<Key>::String(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::BLOB:
         {
             auto& container = ValGetter<Key>::BLOB(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::STRUCT:
         {
@@ -523,7 +538,7 @@ void    _ProcessMap
         case GpType::STRUCT_SP:
         {
             auto& container = ValGetter<Key>::StructSP(aStruct, aPropInfo);
-            _ProcessMapContainer<Key>(container, jsonMap, aJsonAllocator, aFlags);
+            _ProcessMapContainer<Key>(container, aPropInfo, jsonMap, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::ENUM:
         {
@@ -568,21 +583,25 @@ void    GpJsonFromStruct::SWrite
     const GpTypeStructBase&             aStruct,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
     const GpTypeStructInfo& typeInfo    = aStruct.TypeInfo();
     const auto&             props       = typeInfo.Props();
 
-    if (aFlags.Test(GpJsonMapperFlag::WRITE_STRUCT_UID))
+    if (!aIsAsTuple)
     {
-        const std::string structUidStr = typeInfo.UID().ToString();
-        rapidjson::Value n, v;
+        if (aJsonMapperFlags.Test(GpJsonMapperFlag::WRITE_STRUCT_UID))
+        {
+            const std::string structUidStr = typeInfo.UID().ToString();
+            rapidjson::Value n, v;
 
-        n.SetString("@", aJsonAllocator);
-        v.SetString(structUidStr.data(), NumOps::SConvert<rapidjson::SizeType>(structUidStr.length()), aJsonAllocator);
+            n.SetString("@", aJsonAllocator);
+            v.SetString(structUidStr.data(), NumOps::SConvert<rapidjson::SizeType>(structUidStr.length()), aJsonAllocator);
 
-        aJsonObject.AddMember(n.Move(), v.Move(), aJsonAllocator);
+            aJsonObject.AddMember(n.Move(), v.Move(), aJsonAllocator);
+        }
     }
 
     for (const GpTypePropInfo& propInfo: props)
@@ -592,19 +611,19 @@ void    GpJsonFromStruct::SWrite
         {
             if (containerType == GpTypeContainer::NO)
             {
-                SWriteValue(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
+                SWriteValue(aStruct, propInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
             } else if (containerType == GpTypeContainer::VECTOR)
             {
-                SWriteValueVec(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
+                SWriteValueVec(aStruct, propInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
             } else if (containerType == GpTypeContainer::LIST)
             {
-                SWriteValueList(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
+                SWriteValueList(aStruct, propInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
             } else if (containerType == GpTypeContainer::SET)
             {
-                SWriteValueSet(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
+                SWriteValueSet(aStruct, propInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
             } else if (containerType == GpTypeContainer::MAP)
             {
-                SWriteValueMap(aStruct, propInfo, aJsonObject, aJsonAllocator, aFlags);
+                SWriteValueMap(aStruct, propInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
             }
         } catch (const std::exception& e)
         {
@@ -623,7 +642,8 @@ void    GpJsonFromStruct::SWriteValue
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
     const GpType::EnumT propType = aPropInfo.Type();
@@ -632,7 +652,10 @@ void    GpJsonFromStruct::SWriteValue
     rapidjson::Value jsonMemberName;
     rapidjson::Value jsonMemberValue;
 
-    jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    if (!aIsAsTuple)
+    {
+        jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    }
 
     switch (propType)
     {
@@ -700,8 +723,9 @@ void    GpJsonFromStruct::SWriteValue
         case GpType::STRUCT:
         {
             const GpTypeStructBase&             structBase  = aPropInfo.Value_Struct(aStruct);
-            rapidjson::Document::GenericValue&  obj         = jsonMemberValue.SetObject();
-            SWrite(structBase, obj, aJsonAllocator, aFlags);
+            const bool                          isAsTuple   = aPropInfo.FlagTest(GpTypePropFlag::AS_TUPLE);
+            rapidjson::Document::GenericValue&  obj         = isAsTuple ? jsonMemberValue.SetArray() : jsonMemberValue.SetObject();
+            GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aJsonMapperFlags, isAsTuple);
         } break;
         case GpType::STRUCT_SP:
         {
@@ -713,8 +737,9 @@ void    GpJsonFromStruct::SWriteValue
             } else
             {
                 const GpTypeStructBase&             structBase  = structBaseSP.VCn();
-                rapidjson::Document::GenericValue&  obj         = jsonMemberValue.SetObject();
-                SWrite(structBase, obj, aJsonAllocator, aFlags);
+                const bool                          isAsTuple   = aPropInfo.FlagTest(GpTypePropFlag::AS_TUPLE);
+                rapidjson::Document::GenericValue&  obj         = isAsTuple ? jsonMemberValue.SetArray() : jsonMemberValue.SetObject();
+                GpJsonFromStruct::SWrite(structBase, obj, aJsonAllocator, aJsonMapperFlags, isAsTuple);
             }
         } break;
         case GpType::ENUM:
@@ -745,7 +770,13 @@ void    GpJsonFromStruct::SWriteValue
         }
     }
 
-    aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+    if (aIsAsTuple)
+    {
+        aJsonObject.PushBack(jsonMemberValue.Move(), aJsonAllocator);
+    } else
+    {
+        aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+    }
 }
 
 void    GpJsonFromStruct::SWriteValueVec
@@ -754,10 +785,11 @@ void    GpJsonFromStruct::SWriteValueVec
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
-    _ProcessContainer<GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
+    _ProcessContainer<GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
 }
 
 void    GpJsonFromStruct::SWriteValueList
@@ -766,10 +798,11 @@ void    GpJsonFromStruct::SWriteValueList
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
-    _ProcessContainer<GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
+    _ProcessContainer<GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
 }
 
 void    GpJsonFromStruct::SWriteValueSet
@@ -778,10 +811,11 @@ void    GpJsonFromStruct::SWriteValueSet
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
-    _ProcessContainer<GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aFlags);
+    _ProcessContainer<GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject, aJsonAllocator, aJsonMapperFlags, aIsAsTuple);
 }
 
 void    GpJsonFromStruct::SWriteValueMap
@@ -790,7 +824,8 @@ void    GpJsonFromStruct::SWriteValueMap
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aFlags
+    const GpJsonMapperFlags             aJsonMapperFlags,
+    const bool                          aIsAsTuple
 )
 {
     const GpType::EnumT keyType     = aPropInfo.ContainerKeyType();
@@ -799,52 +834,56 @@ void    GpJsonFromStruct::SWriteValueMap
     rapidjson::Value jsonMemberName;
     rapidjson::Value jsonMemberValue;
 
-    jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    if (!aIsAsTuple)
+    {
+        jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+    }
+
     rapidjson::Document::GenericValue& jsonObject = jsonMemberValue.SetObject();
 
     switch (keyType)
     {
         case GpType::U_INT_8:
         {
-            _ProcessMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_8:
         {
-            _ProcessMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::U_INT_16:
         {
-            _ProcessMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_16:
         {
-            _ProcessMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::U_INT_32:
         {
-            _ProcessMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_32:
         {
-            _ProcessMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::U_INT_64:
         {
-            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::S_INT_64:   [[fallthrough]];
         case GpType::UNIX_TS_S:  [[fallthrough]];
         case GpType::UNIX_TS_MS:
         {
-            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::DOUBLE:
         {
-            _ProcessMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::FLOAT:
         {
-            _ProcessMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::BOOLEAN:
         {
@@ -852,15 +891,15 @@ void    GpJsonFromStruct::SWriteValueMap
         } break;
         case GpType::UUID:
         {
-            _ProcessMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::STRING:
         {
-            _ProcessMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::BLOB:
         {
-            _ProcessMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aFlags);
+            _ProcessMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jsonObject, aJsonAllocator, aJsonMapperFlags);
         } break;
         case GpType::STRUCT:
         {
@@ -888,7 +927,13 @@ void    GpJsonFromStruct::SWriteValueMap
         }
     }
 
-    aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+    if (aIsAsTuple)
+    {
+        aJsonObject.PushBack(jsonMemberValue.Move(), aJsonAllocator);
+    } else
+    {
+        aJsonObject.AddMember(jsonMemberName.Move(), jsonMemberValue.Move(), aJsonAllocator);
+    }
 }
 
 }//namespace GPlatform

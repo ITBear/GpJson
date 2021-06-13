@@ -112,7 +112,7 @@ std::string GpJsonMapper::SToJson
 {
     rapidjson::Document jsonDOM;
 
-    GpJsonFromStruct::SWrite(aStruct, jsonDOM.SetObject(), jsonDOM.GetAllocator(), aFlags);
+    GpJsonFromStruct::SWrite(aStruct, jsonDOM.SetObject(), jsonDOM.GetAllocator(), aFlags, false);
     return GpJsonFromStruct::SToString(jsonDOM);
 }
 
@@ -125,7 +125,7 @@ void    GpJsonMapper::SToJson
 {
     rapidjson::Document jsonDOM;
 
-    GpJsonFromStruct::SWrite(aStruct, jsonDOM.SetObject(), jsonDOM.GetAllocator(), aFlags);
+    GpJsonFromStruct::SWrite(aStruct, jsonDOM.SetObject(), jsonDOM.GetAllocator(), aFlags, false);
     GpJsonFromStruct::SToString(jsonDOM, aWriter);
 }
 
