@@ -1,5 +1,7 @@
 #include "GpJsonToStruct.hpp"
 
+#include <iostream>
+
 namespace GPlatform {
 
 class _PreprocVec
@@ -66,16 +68,26 @@ public:
 template<typename Prepocessor,
          typename Inserter,
          typename ValGetter>
-void    _ProcessContainer (GpTypeStructBase&                        aStruct,
-                           const GpTypePropInfo&                    aPropInfo,
-                           const rapidjson::Document::ConstObject&  aJsonObject)
+void    _ProcessContainer
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
     const GpType::EnumT propType = aPropInfo.Type();
-    std::string_view    propName = aPropInfo.Name();
+    std::string_view    propName = aPropInfo.FlagTest(GpTypePropFlag::NAME) ? aPropInfo.FlagArg(GpTypePropFlag::NAME).value() : aPropInfo.Name();
 
     //Find json member
-    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(rapidjson::Document::ValueType(propName.data(),
-                                                                                                         NumOps::SConvert<rapidjson::SizeType>(propName.size())));
+    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember
+    (
+        rapidjson::Document::ValueType
+        (
+            propName.data(),
+            NumOps::SConvert<rapidjson::SizeType>(propName.size())
+        )
+    );
 
     if (   (mit == aJsonObject.MemberEnd())
         || (mit->value.IsNull()))
@@ -239,10 +251,13 @@ void    _ProcessContainer (GpTypeStructBase&                        aStruct,
             for (const auto& v: array)
             {
                 const rapidjson::Document::ConstObject& jsonObject      = v.GetObject();
-                const GpTypeStructInfo&                 typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject, typeInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                const GpTypeStructInfo&                 typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject,
+                                                                                                         typeInfoBase,
+                                                                                                         GpJsonToStruct::CheckMode::CAN_BE_DERIVED,
+                                                                                                         aJsonMapperFlags);
                 GpTypeStructBase::SP                    structBaseSP    = typeInfoJson.NewInstance();
                 GpTypeStructBase&                       structBase      = structBaseSP.Vn();
-                GpJsonToStruct::SReadStruct(structBase, jsonObject);
+                GpJsonToStruct::SReadStruct(structBase, jsonObject, aJsonMapperFlags);
 
                 Inserter::SInsert(container, std::move(structBaseSP));
             }
@@ -339,9 +354,13 @@ T   _ProcessMapKey (std::string_view aValue)
 
 template<typename                       Key,
          template<typename...> class    ValGetter>
-void    _ProcessMap (GpTypeStructBase&                          aStruct,
-                     const GpTypePropInfo&                      aPropInfo,
-                     const rapidjson::Document::ConstObject&    aJsonObject)
+void    _ProcessMap
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
     const GpType::EnumT propType = aPropInfo.Type();
 
@@ -528,10 +547,11 @@ void    _ProcessMap (GpTypeStructBase&                          aStruct,
                 const rapidjson::Document::ConstObject& jsonObject      = value.GetObject();
                 const GpTypeStructInfo&                 typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject,
                                                                                                          typeInfoBase,
-                                                                                                         GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+                                                                                                         GpJsonToStruct::CheckMode::CAN_BE_DERIVED,
+                                                                                                         aJsonMapperFlags);
                 GpTypeStructBase::SP                    structBaseSP    = typeInfoJson.NewInstance();
                 GpTypeStructBase&                       structBase      = structBaseSP.Vn();
-                GpJsonToStruct::SReadStruct(structBase, jsonObject);
+                GpJsonToStruct::SReadStruct(structBase, jsonObject, aJsonMapperFlags);
 
                 container.emplace(_ProcessMapKey<Key>(std::string_view(name.GetString(), name.GetStringLength())),
                                   std::move(structBaseSP));
@@ -578,7 +598,11 @@ const std::array<std::string_view, 18>  GpJsonToStruct::sParseErrorCodes =
     "Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
 };
 
-rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDom (GpRawPtrCharR aJsonData, rapidjson::Document& aJsonDOM)
+rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDom
+(
+    GpRawPtrCharR           aJsonData,
+    rapidjson::Document&    aJsonDOM
+)
 {
     THROW_GPE_COND
     (
@@ -603,7 +627,11 @@ rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDom (GpRawPtrCharR
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
 }
 
-rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDomInsitu (GpRawPtrCharRW aJsonData, rapidjson::Document& aJsonDOM)
+rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDomInsitu
+(
+    GpRawPtrCharRW          aJsonData,
+    rapidjson::Document&    aJsonDOM
+)
 {
     THROW_GPE_COND
     (
@@ -628,8 +656,12 @@ rapidjson::Document::ConstObject    GpJsonToStruct::SParseJsonDomInsitu (GpRawPt
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
 }
 
-void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          aStruct,
-                                     const rapidjson::Document::ConstObject&    aJsonObject)
+void    GpJsonToStruct::SReadStruct
+(
+    GpTypeStructBase&                       aStruct,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
     const GpTypeStructInfo& typeInfo    = aStruct.TypeInfo();
     const auto&             props       = typeInfo.Props();
@@ -641,19 +673,19 @@ void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          
         {
             if (containerType == GpTypeContainer::NO)
             {
-                SReadValue(aStruct, propInfo, aJsonObject);
+                SReadValue(aStruct, propInfo, aJsonObject, aJsonMapperFlags);
             } else if (containerType == GpTypeContainer::VECTOR)
             {
-                SReadValueVec(aStruct, propInfo, aJsonObject);
+                SReadValueVec(aStruct, propInfo, aJsonObject, aJsonMapperFlags);
             } else if (containerType == GpTypeContainer::LIST)
             {
-                SReadValueList(aStruct, propInfo, aJsonObject);
+                SReadValueList(aStruct, propInfo, aJsonObject, aJsonMapperFlags);
             } else if (containerType == GpTypeContainer::SET)
             {
-                SReadValueSet(aStruct, propInfo, aJsonObject);
+                SReadValueSet(aStruct, propInfo, aJsonObject, aJsonMapperFlags);
             } else if (containerType == GpTypeContainer::MAP)
             {
-                SReadValueMap(aStruct, propInfo, aJsonObject);
+                SReadValueMap(aStruct, propInfo, aJsonObject, aJsonMapperFlags);
             }
         } catch (const std::exception& e)
         {
@@ -665,25 +697,40 @@ void    GpJsonToStruct::SReadStruct (GpTypeStructBase&                          
     }
 }
 
-const GpTypeStructInfo&     GpJsonToStruct::SCheckTypeInfo (const rapidjson::Document::ConstObject& aJsonObject,
-                                                            const GpTypeStructInfo&                 aTypeInfoBase,
-                                                            const CheckMode                         aCheckMode)
+const GpTypeStructInfo&     GpJsonToStruct::SCheckTypeInfo
+(
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpTypeStructInfo&                 aTypeInfoBase,
+    const CheckMode                         aCheckMode,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
-    FindTypeInfoResT findRes = SFindTypeInfo(aJsonObject);
+    FindTypeInfoResT findRes = SFindTypeInfo(aJsonObject, aJsonMapperFlags);
 
     if (findRes.has_value())
     {
         const GpTypeStructInfo& typeInfoJson = findRes.value().get();
+
         if (aTypeInfoBase.UID() != typeInfoJson.UID())
         {
             if (aCheckMode == CheckMode::MUST_BE_EQUAL)
             {
-                THROW_GPE("Struct UID`s in json and in c++ must be equal. But c++ struct UID "_sv + aTypeInfoBase.UID().ToString()
+                THROW_GPE("Struct UID`s in json and in code must be equal (CheckMode::MUST_BE_EQUAL). But code struct UID "_sv + aTypeInfoBase.UID().ToString()
                           + " and json struct UID "_sv + typeInfoJson.UID().ToString());
             } else if (GpTypeManager::S().IsBaseOf(aTypeInfoBase.UID(), typeInfoJson.UID()) == false)
             {
-                THROW_GPE("Struct with UID "_sv + aTypeInfoBase.UID().ToString()
-                          + " must be base of struct with UID "_sv + typeInfoJson.UID().ToString());
+                if (aJsonMapperFlags.Test(GpJsonMapperFlag::IGNORE_WRONG_STRUCT_UID))
+                {
+                    if (GpTypeManager::S().IsBaseOf(typeInfoJson.UID(), aTypeInfoBase.UID()) == false)
+                    {
+                        THROW_GPE("Expected struct UID "_sv + aTypeInfoBase.UID().ToString()
+                                  + " but json struct UID "_sv + typeInfoJson.UID().ToString());
+                    }
+                } else
+                {
+                    THROW_GPE("Expected struct UID "_sv + aTypeInfoBase.UID().ToString()
+                              + " but json struct UID "_sv + typeInfoJson.UID().ToString());
+                }
             }
         }
 
@@ -694,7 +741,11 @@ const GpTypeStructInfo&     GpJsonToStruct::SCheckTypeInfo (const rapidjson::Doc
     }
 }
 
-GpJsonToStruct::FindTypeInfoResT    GpJsonToStruct::SFindTypeInfo (const rapidjson::Document::ConstObject& aJsonObject)
+GpJsonToStruct::FindTypeInfoResT    GpJsonToStruct::SFindTypeInfo
+(
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                /*aJsonMapperFlags*/
+)
 {
     //Detect type struct info
     rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember("@");
@@ -720,12 +771,16 @@ GpJsonToStruct::FindTypeInfoResT    GpJsonToStruct::SFindTypeInfo (const rapidjs
      return structUidOpt.value();
 }
 
-void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStruct,
-                                    const GpTypePropInfo&                   aPropInfo,
-                                    const rapidjson::Document::ConstObject& aJsonObject)
+void    GpJsonToStruct::SReadValue
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
     const GpType::EnumT propType = aPropInfo.Type();
-    std::string_view    propName = aPropInfo.Name();
+    std::string_view    propName = aPropInfo.FlagTest(GpTypePropFlag::NAME) ? aPropInfo.FlagArg(GpTypePropFlag::NAME).value() : aPropInfo.Name();
 
     //Find json member
     rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember
@@ -810,17 +865,20 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
         {
             GpTypeStructBase&                   structBase      = aPropInfo.Value_Struct(aStruct);
             rapidjson::Document::ConstObject    jsonObject      = mitVal.GetObject();
-            SReadStruct(structBase, jsonObject);
+            SReadStruct(structBase, jsonObject, aJsonMapperFlags);
         } break;
         case GpType::STRUCT_SP:
         {
             GpTypeStructBase::SP&               structBaseSP    = aPropInfo.Value_StructSP(aStruct);
             const GpTypeStructInfo&             typeInfoBase    = GpTypeManager::S().Find(aPropInfo.TypeUID()).value();
             rapidjson::Document::ConstObject    jsonObject      = mitVal.GetObject();
-            const GpTypeStructInfo&             typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject, typeInfoBase, GpJsonToStruct::CheckMode::CAN_BE_DERIVED);
+            const GpTypeStructInfo&             typeInfoJson    = GpJsonToStruct::SCheckTypeInfo(jsonObject,
+                                                                                                 typeInfoBase,
+                                                                                                 GpJsonToStruct::CheckMode::CAN_BE_DERIVED,
+                                                                                                 aJsonMapperFlags);
                                                 structBaseSP    = typeInfoJson.NewInstance();
             GpTypeStructBase&                   structBase      = structBaseSP.Vn();
-            SReadStruct(structBase, jsonObject);
+            SReadStruct(structBase, jsonObject, aJsonMapperFlags);
         } break;
         case GpType::ENUM:
         {
@@ -847,37 +905,59 @@ void    GpJsonToStruct::SReadValue (GpTypeStructBase&                       aStr
     }
 }
 
-void    GpJsonToStruct::SReadValueVec (GpTypeStructBase&                        aStruct,
-                                       const GpTypePropInfo&                    aPropInfo,
-                                       const rapidjson::Document::ConstObject&  aJsonObject)
+void    GpJsonToStruct::SReadValueVec
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
-    _ProcessContainer<_PreprocVec, _InserterVec, GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject);
+    _ProcessContainer<_PreprocVec, _InserterVec, GpTypePropInfoGetter_Vec>(aStruct, aPropInfo, aJsonObject, aJsonMapperFlags);
 }
 
-void    GpJsonToStruct::SReadValueList (GpTypeStructBase&                       aStruct,
-                                        const GpTypePropInfo&                   aPropInfo,
-                                        const rapidjson::Document::ConstObject& aJsonObject)
+void    GpJsonToStruct::SReadValueList
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
-    _ProcessContainer<_PreprocList, _InserterList, GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject);
+    _ProcessContainer<_PreprocList, _InserterList, GpTypePropInfoGetter_List>(aStruct, aPropInfo, aJsonObject, aJsonMapperFlags);
 }
 
-void    GpJsonToStruct::SReadValueSet (GpTypeStructBase&                        aStruct,
-                                        const GpTypePropInfo&                   aPropInfo,
-                                        const rapidjson::Document::ConstObject& aJsonObject)
+void    GpJsonToStruct::SReadValueSet
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
-    _ProcessContainer<_PreprocSet, _InserterSet, GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject);
+    _ProcessContainer<_PreprocSet, _InserterSet, GpTypePropInfoGetter_Set>(aStruct, aPropInfo, aJsonObject, aJsonMapperFlags);
 }
 
-void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        aStruct,
-                                       const GpTypePropInfo&                    aPropInfo,
-                                       const rapidjson::Document::ConstObject&  aJsonObject)
+void    GpJsonToStruct::SReadValueMap
+(
+    GpTypeStructBase&                       aStruct,
+    const GpTypePropInfo&                   aPropInfo,
+    const rapidjson::Document::ConstObject& aJsonObject,
+    const GpJsonMapperFlags&                aJsonMapperFlags
+)
 {
     const GpType::EnumT keyType     = aPropInfo.ContainerKeyType();
-    std::string_view    propName    = aPropInfo.Name();
+    std::string_view    propName    = aPropInfo.FlagTest(GpTypePropFlag::NAME) ? aPropInfo.FlagArg(GpTypePropFlag::NAME).value() : aPropInfo.Name();
 
     //Find json member
-    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember(rapidjson::Document::ValueType(propName.data(),
-                                                                                                         NumOps::SConvert<rapidjson::SizeType>(propName.size())));
+    rapidjson::Document::ConstMemberIterator mit = aJsonObject.FindMember
+    (
+        rapidjson::Document::ValueType
+        (
+            propName.data(),
+            NumOps::SConvert<rapidjson::SizeType>(propName.size())
+        )
+    );
 
     if (   (mit == aJsonObject.MemberEnd())
         || (mit->value.IsNull()))
@@ -899,45 +979,45 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
     {
         case GpType::U_INT_8:
         {
-            _ProcessMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::S_INT_8:
         {
-            _ProcessMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<s_int_8, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::U_INT_16:
         {
-            _ProcessMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::S_INT_16:
         {
-            _ProcessMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<s_int_16, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::U_INT_32:
         {
-            _ProcessMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::S_INT_32:
         {
-            _ProcessMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<s_int_32, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::U_INT_64:
         {
-            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::S_INT_64:  [[fallthrough]];
         case GpType::UNIX_TS_S: [[fallthrough]];
         case GpType::UNIX_TS_MS:
         {
-            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<u_int_64, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::DOUBLE:
         {
-            _ProcessMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<double, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::FLOAT:
         {
-            _ProcessMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<float, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::BOOLEAN:
         {
@@ -945,15 +1025,15 @@ void    GpJsonToStruct::SReadValueMap (GpTypeStructBase&                        
         } break;
         case GpType::UUID:
         {
-            _ProcessMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<GpUUID, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::STRING:
         {
-            _ProcessMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<std::string, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::BLOB:
         {
-            _ProcessMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj);
+            _ProcessMap<GpBytesArray, GpTypePropInfoGetter_Map>(aStruct, aPropInfo, jObj, aJsonMapperFlags);
         } break;
         case GpType::STRUCT:
         {

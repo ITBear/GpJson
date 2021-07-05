@@ -18,7 +18,7 @@ GpTypeMapperJson::~GpTypeMapperJson (void) noexcept
 
 GpTypeStructBase::SP    GpTypeMapperJson::ToStruct (GpRawPtrByteR aData) const
 {
-    return GpJsonMapper::SFromJson(aData);
+    return GpJsonMapper::SFromJson(aData, iFlags);
 }
 
 GpTypeStructBase::SP    GpTypeMapperJson::ToStruct
@@ -27,7 +27,7 @@ GpTypeStructBase::SP    GpTypeMapperJson::ToStruct
     const GpTypeStructInfo& aTypeInfo
 ) const
 {
-    return GpJsonMapper::SFromJson(aData, aTypeInfo);
+    return GpJsonMapper::SFromJson(aData, aTypeInfo, iFlags);
 }
 
 void    GpTypeMapperJson::FromStruct

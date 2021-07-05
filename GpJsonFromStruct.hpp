@@ -26,7 +26,7 @@ public:
     static void         SWrite          (const GpTypeStructBase&                aStruct,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const GpJsonMapperFlags                aJsonMapperFlags,
+                                         const GpJsonMapperFlags&               aJsonMapperFlags,
                                          const bool                             aIsAsTuple);
 
 private:
@@ -34,35 +34,35 @@ private:
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const GpJsonMapperFlags                aJsonMapperFlags,
+                                         const GpJsonMapperFlags&               aJsonMapperFlags,
                                          const bool                             aIsAsTuple);
 
     static void         SWriteValueVec  (const GpTypeStructBase&                aStruct,
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const GpJsonMapperFlags                aJsonMapperFlags,
+                                         const GpJsonMapperFlags&               aJsonMapperFlags,
                                          const bool                             aIsAsTuple);
 
     static void         SWriteValueList (const GpTypeStructBase&                aStruct,
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const GpJsonMapperFlags                aJsonMapperFlags,
+                                         const GpJsonMapperFlags&               aJsonMapperFlags,
                                          const bool                             aIsAsTuple);
 
     static void         SWriteValueSet  (const GpTypeStructBase&                aStruct,
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const GpJsonMapperFlags                aJsonMapperFlags,
+                                         const GpJsonMapperFlags&               aJsonMapperFlags,
                                          const bool                             aIsAsTuple);
 
     static void         SWriteValueMap  (const GpTypeStructBase&                aStruct,
                                          const GpTypePropInfo&                  aPropInfo,
                                          rapidjson::Document::GenericValue&     aJsonObject,
                                          rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                         const GpJsonMapperFlags                aJsonMapperFlags,
+                                         const GpJsonMapperFlags&               aJsonMapperFlags,
                                          const bool                             aIsAsTuple);
 };
 

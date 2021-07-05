@@ -12,7 +12,7 @@ void    _ProcessContainer
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -24,7 +24,14 @@ void    _ProcessContainer
 
     if (!aIsAsTuple)
     {
-        jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+        if (aPropInfo.FlagTest(GpTypePropFlag::NAME))
+        {
+            std::string_view name = aPropInfo.FlagArg(GpTypePropFlag::NAME).value();
+            jsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aJsonAllocator);
+        } else
+        {
+            jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+        }
     }
 
     rapidjson::Document::GenericValue& jsonArray = jsonMemberValue.SetArray();
@@ -336,7 +343,7 @@ void    _ProcessMapVal
     const T&                            aValue,
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags
+    const GpJsonMapperFlags&            aJsonMapperFlags
 )
 {
     constexpr const GpType::EnumT type = GpTypeUtils::SDetectType<T>();
@@ -426,7 +433,7 @@ void    _ProcessMapContainer
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonMap,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags
+    const GpJsonMapperFlags&            aJsonMapperFlags
 )
 {
     for (const auto&[k, v]: aContainer)
@@ -451,7 +458,7 @@ void    _ProcessMap
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags
+    const GpJsonMapperFlags&            aJsonMapperFlags
 )
 {
     const GpType::EnumT                 propType    = aPropInfo.Type();
@@ -583,7 +590,7 @@ void    GpJsonFromStruct::SWrite
     const GpTypeStructBase&             aStruct,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -642,7 +649,7 @@ void    GpJsonFromStruct::SWriteValue
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -654,7 +661,14 @@ void    GpJsonFromStruct::SWriteValue
 
     if (!aIsAsTuple)
     {
-        jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+        if (aPropInfo.FlagTest(GpTypePropFlag::NAME))
+        {
+            std::string_view name = aPropInfo.FlagArg(GpTypePropFlag::NAME).value();
+            jsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aJsonAllocator);
+        } else
+        {
+            jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+        }
     }
 
     switch (propType)
@@ -785,7 +799,7 @@ void    GpJsonFromStruct::SWriteValueVec
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -798,7 +812,7 @@ void    GpJsonFromStruct::SWriteValueList
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -811,7 +825,7 @@ void    GpJsonFromStruct::SWriteValueSet
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -824,7 +838,7 @@ void    GpJsonFromStruct::SWriteValueMap
     const GpTypePropInfo&               aPropInfo,
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
-    const GpJsonMapperFlags             aJsonMapperFlags,
+    const GpJsonMapperFlags&            aJsonMapperFlags,
     const bool                          aIsAsTuple
 )
 {
@@ -836,7 +850,14 @@ void    GpJsonFromStruct::SWriteValueMap
 
     if (!aIsAsTuple)
     {
-        jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+        if (aPropInfo.FlagTest(GpTypePropFlag::NAME))
+        {
+            std::string_view name = aPropInfo.FlagArg(GpTypePropFlag::NAME).value();
+            jsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aJsonAllocator);
+        } else
+        {
+            jsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aJsonAllocator);
+        }
     }
 
     rapidjson::Document::GenericValue& jsonObject = jsonMemberValue.SetObject();
