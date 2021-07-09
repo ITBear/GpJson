@@ -7,7 +7,7 @@ namespace GPlatform {
 class GPJSON_API GpJsonMapper
 {
 public:
-    CLASS_REMOVE_CTRS(GpJsonMapper)
+    CLASS_REMOVE_CTRS_DEFAULT_MOVE_COPY(GpJsonMapper)
 
 public:
     static GpTypeStructBase::SP     SFromJson       (GpRawPtrCharR              aJsonData,

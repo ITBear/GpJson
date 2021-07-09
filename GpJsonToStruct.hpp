@@ -16,7 +16,7 @@ namespace GPlatform {
 class GPJSON_API GpJsonToStruct
 {
 public:
-    CLASS_REMOVE_CTRS(GpJsonToStruct);
+    CLASS_REMOVE_CTRS_DEFAULT_MOVE_COPY(GpJsonToStruct);
 
     enum class CheckMode
     {

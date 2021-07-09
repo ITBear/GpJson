@@ -16,7 +16,7 @@ namespace GPlatform {
 class GPJSON_API GpJsonFromStruct
 {
 public:
-    CLASS_REMOVE_CTRS(GpJsonFromStruct);
+    CLASS_REMOVE_CTRS_DEFAULT_MOVE_COPY(GpJsonFromStruct);
 
 public:
     static std::string  SToString       (const rapidjson::Document& aJsonDOM);
