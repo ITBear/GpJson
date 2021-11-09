@@ -1,5 +1,4 @@
 #include "GpTypeMapperJson.hpp"
-#include <iostream>
 
 namespace GPlatform {
 
