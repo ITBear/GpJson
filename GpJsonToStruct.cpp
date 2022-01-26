@@ -802,37 +802,93 @@ void    GpJsonToStruct::SReadValue
     {
         case GpType::U_INT_8:
         {
-            aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<u_int_8>(mitVal.GetUint64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<u_int_8>(mitVal.GetUint64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<u_int_8>(StrOps::SToUI64(sval));
+            }
         } break;
         case GpType::S_INT_8:
         {
-            aPropInfo.Value_UInt8(aStruct) = NumOps::SConvert<s_int_8>(mitVal.GetInt64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_SInt8(aStruct) = NumOps::SConvert<s_int_8>(mitVal.GetInt64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_SInt8(aStruct) = NumOps::SConvert<s_int_8>(StrOps::SToSI64(sval));
+            }
         } break;
         case GpType::U_INT_16:
         {
-            aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<u_int_16>(mitVal.GetUint64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<u_int_16>(mitVal.GetUint64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<u_int_16>(StrOps::SToUI64(sval));
+            }
         } break;
         case GpType::S_INT_16:
         {
-            aPropInfo.Value_UInt16(aStruct) = NumOps::SConvert<s_int_16>(mitVal.GetInt64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_SInt16(aStruct) = NumOps::SConvert<s_int_16>(mitVal.GetInt64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_SInt16(aStruct) = NumOps::SConvert<s_int_16>(StrOps::SToSI64(sval));
+            }
         } break;
         case GpType::U_INT_32:
         {
-            aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<u_int_32>(mitVal.GetUint64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<u_int_32>(mitVal.GetUint64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<u_int_32>(StrOps::SToUI64(sval));
+            }
         } break;
         case GpType::S_INT_32:
         {
-            aPropInfo.Value_UInt32(aStruct) = NumOps::SConvert<s_int_32>(mitVal.GetInt64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_SInt32(aStruct) = NumOps::SConvert<s_int_32>(mitVal.GetInt64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_SInt32(aStruct) = NumOps::SConvert<s_int_32>(StrOps::SToSI64(sval));
+            }
         } break;
         case GpType::U_INT_64:
         {
-            aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<u_int_64>(mitVal.GetUint64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<u_int_64>(mitVal.GetUint64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<u_int_64>(StrOps::SToUI64(sval));
+            }
         } break;
         case GpType::S_INT_64:   [[fallthrough]];
         case GpType::UNIX_TS_S:  [[fallthrough]];
         case GpType::UNIX_TS_MS:
         {
-            aPropInfo.Value_UInt64(aStruct) = NumOps::SConvert<s_int_64>(mitVal.GetInt64());
+            if (mitVal.IsNumber())
+            {
+                aPropInfo.Value_SInt64(aStruct) = NumOps::SConvert<s_int_64>(mitVal.GetInt64());
+            } else
+            {
+                std::string_view sval = std::string_view(mitVal.GetString(), mitVal.GetStringLength());
+                aPropInfo.Value_SInt64(aStruct) = NumOps::SConvert<s_int_64>(StrOps::SToSI64(sval));
+            }
         } break;
         case GpType::DOUBLE:
         {
