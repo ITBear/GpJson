@@ -1,11 +1,11 @@
 TEMPLATE        = lib
 #CONFIG         += staticlib
-VER_MAJ		    = 0
-VER_MIN		    = 1
+VER_MAJ		    = 1
+VER_MIN		    = 3
 VER_PAT		    = 0
 QMAKE_CXXFLAGS += -DGP_MODULE_UUID=73be6325-e256-436e-9db1-82788105e16e
-QMAKE_CXXFLAGS += -DGP_TYPE_SYSTEM_STATIC_ADD_TO_MANAGER
-DEFINES		   += GPJSON_LIBRARY
+QMAKE_CXXFLAGS += -DGP_REFLECTION_STATIC_ADD_TO_MANAGER
+DEFINES		   += GP_JSON_LIBRARY
 PACKET_NAME     = GpJson
 DIR_LEVEL       = ./..
 
@@ -13,29 +13,24 @@ include(../../QtGlobalPro.pri)
 
 #------------------------------ LIBS BEGIN ---------------------------------
 os_windows{
-	GP_CORE_LIB_V		= 2
 }
 
 os_linux{
 }
-
-LIBS += -lGpCore2$$TARGET_POSTFIX$$GP_CORE_LIB_V
-#------------------------------ LIBS END ---------------------------------
+#------------------------------- LIBS END ----------------------------------
 
 SOURCES += \
-	GpJsonFromStruct.cpp \
-	GpJsonMapper.cpp \
-	GpJsonMapperFlags.cpp \
-	GpJsonToStruct.cpp \
-	GpTypeMapperJson.cpp \
-	GpTypeMapperJsonFactory.cpp
+	GpJsonFromObject.cpp \
+	GpJsonSerializer.cpp \
+	GpJsonSerializerFactory.cpp \
+	GpJsonSerializerFlags.cpp \
+	GpJsonToObject.cpp
 
 HEADERS += \
-    GpJsonFromStruct.hpp \
-    GpJsonMapper.hpp \
-    GpJsonMapperFlags.hpp \
-    GpJsonToStruct.hpp \
+    GpJsonFromObject.hpp \
+    GpJsonSerializer.hpp \
+    GpJsonSerializerFactory.hpp \
+    GpJsonSerializerFlags.hpp \
+    GpJsonToObject.hpp \
     GpJson_global.hpp \
-    GpJson.hpp \
-    GpTypeMapperJson.hpp \
-    GpTypeMapperJsonFactory.hpp
+    GpJson.hpp

@@ -1,5 +1,4 @@
 #pragma once
 
-#include "GpJsonMapper.hpp"
-#include "GpTypeMapperJson.hpp"
-#include "GpTypeMapperJsonFactory.hpp"
+#include "GpJsonSerializer.hpp"
+#include "GpJsonSerializerFactory.hpp"

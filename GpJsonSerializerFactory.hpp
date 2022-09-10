@@ -1,0 +1,28 @@
+#pragma once
+
+#include "GpJsonSerializer.hpp"
+
+namespace GPlatform {
+
+class GP_JSON_API GpJsonSerializerFactory final: public GpReflectSerializerFactory
+{
+public:
+    CLASS_DECLARE_DEFAULTS(GpJsonSerializerFactory)
+
+public:
+                                        GpJsonSerializerFactory     (void) noexcept = default;
+    inline                              GpJsonSerializerFactory     (const GpJsonSerializerFlags aFlags) noexcept;
+    virtual                             ~GpJsonSerializerFactory    (void) noexcept override final;
+
+    virtual GpReflectSerializer::SP     NewInstance                 (void) const override final;
+
+private:
+    const GpJsonSerializerFlags         iFlags;
+};
+
+GpJsonSerializerFactory::GpJsonSerializerFactory (const GpJsonSerializerFlags aFlags) noexcept:
+iFlags(aFlags)
+{
+}
+
+}//namespace GPlatform
