@@ -371,7 +371,7 @@ void    JVisitor_VisitValueCtx::Value_EnumFlags
 )
 {
     const GpEnumFlags&                  enumFlags       = aProp.Value_EnumFlags(aDataPtr);
-    GpVector<std::string_view>          enumFlagNames   = enumFlags.ToStringViewArray();
+    std::vector<std::string_view>       enumFlagNames   = enumFlags.ToStringViewArray();
     rapidjson::Document::GenericValue&  jsonArray       = iJsonMemberValue.SetArray();
 
     for (std::string_view flagName: enumFlagNames)

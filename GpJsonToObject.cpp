@@ -543,8 +543,8 @@ public:
 
 private:
     template<typename VT>
-    void                ContainerReserve            (GpVector<VT>&  aContainer,
-                                                     const size_t   aSize);
+    void                ContainerReserve            (std::vector<VT>&   aContainer,
+                                                     const size_t       aSize);
 
     template<typename VT,
              template<typename... TArgs> class CT>
@@ -553,18 +553,18 @@ private:
 
     template<typename VT,
              typename... Ts>
-    void                ContainerInsert             (GpVector<VT>&  aContainer,
+    void                ContainerInsert             (std::vector<VT>&   aContainer,
                                                      Ts&&...            aArgs);
 
     template<typename VT,
              typename... Ts>
-    void                ContainerInsert             (GpList<VT>&    aContainer,
+    void                ContainerInsert             (std::list<VT>& aContainer,
                                                      Ts&&...        aArgs);
 
     template<typename VT,
              typename... Ts>
-    void                ContainerInsert             (GpSet<VT>& aContainer,
-                                                     Ts&&...    aArgs);
+    void                ContainerInsert             (std::set<VT>&  aContainer,
+                                                     Ts&&...        aArgs);
 
 public:
     rapidjson::Document::ConstMemberIterator    iMit;
@@ -620,7 +620,7 @@ void    JVisitor_VisitContainerCtx::OnVisitEnd
 template<typename VT>
 void    JVisitor_VisitContainerCtx::ContainerReserve
 (
-    GpVector<VT>&   aContainer,
+    std::vector<VT>&    aContainer,
     const size_t    aSize
 )
 {
@@ -642,7 +642,7 @@ template<typename VT,
          typename... Ts>
 void    JVisitor_VisitContainerCtx::ContainerInsert
 (
-    GpVector<VT>&   aContainer,
+    std::vector<VT>&    aContainer,
     Ts&&...         aArgs
 )
 {
@@ -653,8 +653,8 @@ template<typename VT,
          typename... Ts>
 void    JVisitor_VisitContainerCtx::ContainerInsert
 (
-    GpList<VT>& aContainer,
-    Ts&&...     aArgs
+    std::list<VT>&  aContainer,
+    Ts&&...         aArgs
 )
 {
     aContainer.emplace_back(std::forward<Ts>(aArgs)...);
@@ -664,7 +664,7 @@ template<typename VT,
          typename... Ts>
 void    JVisitor_VisitContainerCtx::ContainerInsert
 (
-    GpSet<VT>&  aContainer,
+    std::set<VT>&   aContainer,
     Ts&&...         aArgs
 )
 {
@@ -1826,7 +1826,7 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
 const GpReflectModel&   GpJsonToObject::SCheckModel
 (
     const rapidjson::Document::ConstObject& aJsonObject,
-    const GpVector<const GpReflectModel*>&  aModelVariants
+    const std::vector<const GpReflectModel*>&   aModelVariants
 )
 {
     std::optional<GpUUID> modelUidJsonOpt = SFindModelUid(aJsonObject);

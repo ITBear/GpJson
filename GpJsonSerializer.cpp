@@ -24,8 +24,8 @@ GpReflectObject::SP GpJsonSerializer::ToObject
 
 GpReflectObject::SP GpJsonSerializer::ToObject
 (
-    GpSpanPtrByteR                          aData,
-    const GpVector<const GpReflectModel*>&  aModelVariants
+    GpSpanPtrByteR                              aData,
+    const std::vector<const GpReflectModel*>&   aModelVariants
 ) const
 {
     return SFromStr(aData.AsStringView(), aModelVariants, iFlags);
@@ -89,7 +89,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
     std::string_view                        aJsonStr,
-    const GpVector<const GpReflectModel*>&  aModelVariants,
+    const std::vector<const GpReflectModel*>&   aModelVariants,
     const GpJsonSerializerFlags&            aFlags
 )
 {
@@ -185,7 +185,7 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
     std::string_view                        aJsonStr,
-    const GpVector<const GpReflectModel*>&  aModelVariants,
+    const std::vector<const GpReflectModel*>&   aModelVariants,
     const GpJsonSerializerFlags&            aFlags
 )
 {

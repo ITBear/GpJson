@@ -7,7 +7,7 @@ namespace GPlatform {
 class GP_JSON_API GpJsonSerializer final: public GpReflectSerializer
 {
 public:
-    CLASS_DECLARE_DEFAULTS(GpJsonSerializer)
+    CLASS_DD(GpJsonSerializer)
 
 public:
                                         GpJsonSerializer    (void) noexcept = default;
@@ -17,8 +17,8 @@ public:
     virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR aData) const override final;
     virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR         aData,
                                                              const GpReflectModel&  aModel) const override final;
-    virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR                         aData,
-                                                             const GpVector<const GpReflectModel*>& aModelVariants) const override final;
+    virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR                             aData,
+                                                             const std::vector<const GpReflectModel*>&  aModelVariants) const override final;
 
     virtual void                        FromObject          (const GpReflectObject& aObject,
                                                              GpByteWriter&          aWriter) const override final;
@@ -32,9 +32,9 @@ public:
     static GpReflectObject::SP          SFromStr            (std::string_view               aJsonStr,
                                                              const GpReflectModel&          aModel,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::SP          SFromStr            (std::string_view                       aJsonStr,
-                                                             const GpVector<const GpReflectModel*>& aModelVariants,
-                                                             const GpJsonSerializerFlags&           aFlags);
+    static GpReflectObject::SP          SFromStr            (std::string_view                           aJsonStr,
+                                                             const std::vector<const GpReflectModel*>&  aModelVariants,
+                                                             const GpJsonSerializerFlags&               aFlags);
     static void                         SFromStr            (std::string_view               aJsonStr,
                                                              GpReflectObject&               aOut,
                                                              const GpJsonSerializerFlags&   aFlags);
@@ -48,9 +48,9 @@ public:
     static GpReflectObject::C::Vec::SP  SFromStrVec         (std::string_view               aJsonStr,
                                                              const GpReflectModel&          aModel,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::string_view                       aJsonStr,
-                                                             const GpVector<const GpReflectModel*>& aModelVariants,
-                                                             const GpJsonSerializerFlags&           aFlags);
+    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::string_view                           aJsonStr,
+                                                             const std::vector<const GpReflectModel*>&  aModelVariants,
+                                                             const GpJsonSerializerFlags&               aFlags);
 
     template <typename T> static
     typename T::C::Vec::SP              SFromStrVec         (std::string_view               aJsonStr,

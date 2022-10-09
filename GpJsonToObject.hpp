@@ -32,7 +32,7 @@ public:
     static const GpReflectModel&            SCheckModel         (const rapidjson::Document::ConstObject&    aJsonObject,
                                                                      const GpReflectModel&                  aModel);
     static const GpReflectModel&            SCheckModel         (const rapidjson::Document::ConstObject&    aJsonObject,
-                                                                 const GpVector<const GpReflectModel*>&     aModelVariants);
+                                                                 const std::vector<const GpReflectModel*>&  aModelVariants);
 
     static GpReflectModel::C::Opt::CRef     SFindModel          (const rapidjson::Document::ConstObject&    aJsonObject);
 

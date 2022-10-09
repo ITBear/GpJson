@@ -7,7 +7,7 @@ namespace GPlatform {
 class GP_JSON_API GpJsonSerializerFactory final: public GpReflectSerializerFactory
 {
 public:
-    CLASS_DECLARE_DEFAULTS(GpJsonSerializerFactory)
+    CLASS_DD(GpJsonSerializerFactory)
 
 public:
                                         GpJsonSerializerFactory     (void) noexcept = default;
