@@ -1,5 +1,11 @@
 #include "GpJsonFromObject.hpp"
 
+#include "../GpCore2/GpReflection/GpReflectObject.hpp"
+#include "../GpCore2/GpReflection/GpReflectUtils.hpp"
+#include "../GpCore2/GpReflection/GpReflectVisitor.hpp"
+#include "../GpCore2/GpUtils/Encoders/GpBase64.hpp"
+#include "GpJsonUtilsInternal.hpp"
+
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
@@ -50,8 +56,10 @@ bool    JVisitor_VisitCtx::OnVisitBegin (const GpReflectModel& aModel)
 
             name.SetString("@", iJsonAllocator);
 
-            const std::string modelUidStr = aModel.Uid().ToString();
-            obj.SetString(modelUidStr.data(), NumOps::SConvert<rapidjson::SizeType>(modelUidStr.length()), iJsonAllocator);
+            const std::u8string modelUidStr = aModel.Uid().ToString();
+
+            _JsonSetStr(obj, modelUidStr, iJsonAllocator);
+            //obj.SetString(modelUidStr.data(), NumOps::SConvert<rapidjson::SizeType>(modelUidStr.length()), iJsonAllocator);
 
             iJsonObject.AddMember(name.Move(), obj.Move(), iJsonAllocator);
         }
@@ -147,12 +155,14 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
     {
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
-            std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            std::u8string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
+            //iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
-            std::string_view propName = aProp.Name();
-            iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            std::u8string_view propName = aProp.Name();
+            //iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
 
@@ -272,7 +282,7 @@ void    JVisitor_VisitValueCtx::Value_Float
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    iJsonMemberValue.SetDouble(aProp.Value_Float(aDataPtr));
+    iJsonMemberValue.SetDouble(static_cast<double>(aProp.Value_Float(aDataPtr)));
 }
 
 void    JVisitor_VisitValueCtx::Value_Bool
@@ -292,8 +302,9 @@ void    JVisitor_VisitValueCtx::Value_UUID
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const std::string propVal = aProp.Value_UUID(aDataPtr).ToString();
-    iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    const std::u8string propVal = aProp.Value_UUID(aDataPtr).ToString();
+    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
 void    JVisitor_VisitValueCtx::Value_String
@@ -303,8 +314,9 @@ void    JVisitor_VisitValueCtx::Value_String
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const std::string& propVal = aProp.Value_String(aDataPtr);
-    iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    const std::u8string& propVal = aProp.Value_String(aDataPtr);
+    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
 void    JVisitor_VisitValueCtx::Value_BLOB
@@ -314,8 +326,11 @@ void    JVisitor_VisitValueCtx::Value_BLOB
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const std::string propVal = GpBase64::SEncodeToStr(aProp.Value_BLOB(aDataPtr), 0);//StrOps::SFromBytes(aProp.Value_BLOB(aDataPtr));
-    iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    const GpBytesArray& blob = aProp.Value_BLOB(aDataPtr);
+    GpSpanPtrByteR      blobSpan(blob.data(), blob.size());
+    const std::u8string propVal = GpBase64::SEncodeToStr(blobSpan, 0);//StrOps::SFromBytes(aProp.Value_BLOB(aDataPtr));
+    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
 void    JVisitor_VisitValueCtx::Value_Object
@@ -359,8 +374,9 @@ void    JVisitor_VisitValueCtx::Value_Enum
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::string_view propVal = aProp.Value_Enum(aDataPtr).ToString();
-    iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    std::u8string_view propVal = aProp.Value_Enum(aDataPtr).ToString();
+    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
 void    JVisitor_VisitValueCtx::Value_EnumFlags
@@ -371,13 +387,14 @@ void    JVisitor_VisitValueCtx::Value_EnumFlags
 )
 {
     const GpEnumFlags&                  enumFlags       = aProp.Value_EnumFlags(aDataPtr);
-    std::vector<std::string_view>       enumFlagNames   = enumFlags.ToStringViewArray();
+    std::vector<std::u8string_view>     enumFlagNames   = enumFlags.ToStringViewArray();
     rapidjson::Document::GenericValue&  jsonArray       = iJsonMemberValue.SetArray();
 
-    for (std::string_view flagName: enumFlagNames)
+    for (std::u8string_view flagName: enumFlagNames)
     {
         rapidjson::Value jv;
-        jv.SetString(flagName.data(), NumOps::SConvert<rapidjson::SizeType>(flagName.length()), aCtx.iJsonAllocator);
+        //jv.SetString(flagName.data(), NumOps::SConvert<rapidjson::SizeType>(flagName.length()), aCtx.iJsonAllocator);
+        _JsonSetStr(jv, flagName, aCtx.iJsonAllocator);
         jsonArray.PushBack(jv.Move(), aCtx.iJsonAllocator);
     }
 }
@@ -502,12 +519,14 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     {
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
-            std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            std::u8string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
+            //iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
-            std::string_view    propName = aProp.Name();
-            iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            std::u8string_view  propName = aProp.Name();
+            //iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
 
@@ -698,7 +717,11 @@ void    JVisitor_VisitContainerCtx::Value_Float
 
     for (const float e: container)
     {
-        iJsonArray->PushBack(rapidjson::Value().SetDouble(e), aCtx.iJsonAllocator);
+        iJsonArray->PushBack
+        (
+            rapidjson::Value().SetDouble(static_cast<double>(e)),
+            aCtx.iJsonAllocator
+        );
     }
 }
 
@@ -732,9 +755,10 @@ void    JVisitor_VisitContainerCtx::Value_UUID
 
     for (const GpUUID& e: container)
     {
-        const std::string s = e.ToString();
+        const std::u8string s = e.ToString();
         rapidjson::Value jv;
-        jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
+        //jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
+        _JsonSetStr(jv, s, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
     }
@@ -751,10 +775,11 @@ void    JVisitor_VisitContainerCtx::Value_String
     auto& container = ValGetterT::String(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
-    for (const std::string& e: container)
+    for (const std::u8string& e: container)
     {
         rapidjson::Value jv;
-        jv.SetString(e.data(), NumOps::SConvert<rapidjson::SizeType>(e.length()), aCtx.iJsonAllocator);
+        //jv.SetString(e.data(), NumOps::SConvert<rapidjson::SizeType>(e.length()), aCtx.iJsonAllocator);
+        _JsonSetStr(jv, e, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
     }
@@ -773,9 +798,10 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
 
     for (const GpBytesArray& e: container)
     {
-        const std::string s = GpBase64::SEncodeToStr(e, 0);//StrOps::SFromBytes(e);
+        const std::u8string s = GpBase64::SEncodeToStr(GpSpanPtrByteR(e.data(), e.size()), 0);//StrOps::SFromBytes(e);
         rapidjson::Value jv;
-        jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
+        //jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
+        _JsonSetStr(jv, s, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
     }
@@ -789,7 +815,7 @@ void    JVisitor_VisitContainerCtx::Value_Object
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    THROW_GP("Object arrays are not supported, use arrays of Object::SP instead"_sv);
+    THROW_GP(u8"Object arrays are not supported, use arrays of Object::SP instead"_sv);
 }
 
 template<typename ValGetterT>
@@ -830,7 +856,7 @@ void    JVisitor_VisitContainerCtx::Value_Enum
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    THROW_GP("Arrays of enums are not supported"_sv);
+    THROW_GP(u8"Arrays of enums are not supported"_sv);
 }
 
 template<typename ValGetterT>
@@ -841,7 +867,7 @@ void    JVisitor_VisitContainerCtx::Value_EnumFlags
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    THROW_GP("Arrays of enum flags are not supported"_sv);
+    THROW_GP(u8"Arrays of enum flags are not supported"_sv);
 }
 
 //------------------------------------- JVisitor_VisitMapCtx ------------------------------------------
@@ -992,12 +1018,14 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
     {
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
-            std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            std::u8string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
+            //iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
-            std::string_view propName = aProp.Name();
-            iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            std::u8string_view propName = aProp.Name();
+            //iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
 
@@ -1269,59 +1297,73 @@ void    JVisitor_VisitMapCtx::ProcessMapKey
 
     if constexpr (type == GpReflectType::U_INT_8)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_8)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::U_INT_16)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_16)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::U_INT_32)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_32)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::U_INT_64)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_64)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::DOUBLE)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::FLOAT)
     {
-        const std::string s = StrOps::SToString(aValue);
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = StrOps::SToString(aValue);
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BOOLEAN)
     {
-        std::string_view s = aValue ? "true"_sv : "false"_sv;
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        std::u8string_view s = aValue ? "true"_sv : "false"_sv;
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::UUID)
     {
-        const std::string s = aValue.ToString();
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = aValue.ToString();
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::STRING)
     {
-        aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+        //aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, aValue, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        const std::string s = GpBase64::SEncodeToStr(aValue, 0);/*StrOps::SFromBytes(aValue);*/
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = GpBase64::SEncodeToStr(GpSpanPtrByteR(aValue.data(), aValue.size()), 0);/*StrOps::SFromBytes(aValue);*/
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
         THROW_GP("Objects are not supported as map key"_sv);
@@ -1336,7 +1378,7 @@ void    JVisitor_VisitMapCtx::ProcessMapKey
         THROW_GP("Enums flags are not supported as map key"_sv);
     } else
     {
-        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + "'"_sv);
+        GpThrowCe<GpException>(u8"Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + u8"'"_sv);
     }
 }
 
@@ -1387,15 +1429,18 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         aJValOut.SetBool(aValue);
     } else if constexpr (type == GpReflectType::UUID)
     {
-        const std::string s = aValue.ToString();
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = aValue.ToString();
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::STRING)
     {
-        aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+        //aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, aValue, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        const std::string s = GpBase64::SEncodeToStr(aValue, 0);/*StrOps::SFromBytes(aValue);*/
-        aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::u8string s = GpBase64::SEncodeToStr(GpSpanPtrByteR(aValue.data(), aValue.size()), 0);/*StrOps::SFromBytes(aValue);*/
+        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
         THROW_GP("Object are not supported, use arrays of Object::SP instead"_sv);
@@ -1413,13 +1458,13 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         }
     } else if constexpr (type == GpReflectType::ENUM)
     {
-        THROW_GP("Enums are not supported"_sv);
+        THROW_GP(u8"Enums are not supported"_sv);
     } else if constexpr (type == GpReflectType::ENUM_FLAGS)
     {
-        THROW_GP("Enums flags are not supported"_sv);
+        THROW_GP(u8"Enums flags are not supported"_sv);
     } else
     {
-        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + "'"_sv);
+        GpThrowCe<GpException>(u8"Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + u8"'"_sv);
     }
 }
 
@@ -1438,13 +1483,13 @@ public:
 
 //-------------------------------------------------------------------------------
 
-std::string GpJsonFromObject::SToString (const rapidjson::Document& aJsonDOM)
+std::u8string   GpJsonFromObject::SToString (const rapidjson::Document& aJsonDOM)
 {
     rapidjson::StringBuffer                     buffer;
     rapidjson::Writer<rapidjson::StringBuffer>  writer(buffer);
     aJsonDOM.Accept(writer);
 
-    return std::string(buffer.GetString(), buffer.GetSize());
+    return std::u8string(GpUTF::S_STR_To_UTF8(std::string_view(buffer.GetString(), buffer.GetSize())));
 }
 
 void    GpJsonFromObject::SToString

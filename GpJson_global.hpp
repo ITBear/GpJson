@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../GpCore2/GpUtils/GpUtils.hpp"
-#include "../GpCore2/GpReflection/GpReflection.hpp"
+#include "GpJsonConfigure.hpp"
+#include "../GpCore2/GpUtils/GpUtils_global.hpp"
 
 #if defined(GP_JSON_LIBRARY)
     #define GP_JSON_API GP_DECL_EXPORT

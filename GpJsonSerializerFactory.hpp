@@ -1,6 +1,8 @@
 #pragma once
 
-#include "GpJsonSerializer.hpp"
+#include "GpJson_global.hpp"
+#include "GpJsonSerializerFlags.hpp"
+#include "../GpCore2/GpReflection/Serializers/GpReflectSerializerFactory.hpp"
 
 namespace GPlatform {
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GpJsonSerializerFlags.hpp"
+#include "../GpCore2/GpReflection/Serializers/GpReflectSerializer.hpp"
 
 namespace GPlatform {
 
@@ -14,11 +15,13 @@ public:
                                         GpJsonSerializer    (const GpJsonSerializerFlags aFlags) noexcept:iFlags(aFlags) {}
     virtual                             ~GpJsonSerializer   (void) noexcept override final;
 
-    virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR aData) const override final;
-    virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR         aData,
-                                                             const GpReflectModel&  aModel) const override final;
+    virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR             aData) const override final;
+    virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR             aData,
+                                                             const GpReflectModel&      aModel) const override final;
     virtual GpReflectObject::SP         ToObject            (GpSpanPtrByteR                             aData,
                                                              const std::vector<const GpReflectModel*>&  aModelVariants) const override final;
+    virtual GpReflectObject::SP         ToObject            (GpReflectSerializerCtx&    aCtx,
+                                                             const GpReflectModel&      aModel) const override final;
 
     virtual void                        FromObject          (const GpReflectObject& aObject,
                                                              GpByteWriter&          aWriter) const override final;
@@ -27,33 +30,33 @@ private:
     const GpJsonSerializerFlags         iFlags;
 
 public:
-    static GpReflectObject::SP          SFromStr            (std::string_view               aJsonStr,
+    static GpReflectObject::SP          SFromStr            (std::u8string_view             aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::SP          SFromStr            (std::string_view               aJsonStr,
+    static GpReflectObject::SP          SFromStr            (std::u8string_view             aJsonStr,
                                                              const GpReflectModel&          aModel,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::SP          SFromStr            (std::string_view                           aJsonStr,
+    static GpReflectObject::SP          SFromStr            (std::u8string_view                         aJsonStr,
                                                              const std::vector<const GpReflectModel*>&  aModelVariants,
                                                              const GpJsonSerializerFlags&               aFlags);
-    static void                         SFromStr            (std::string_view               aJsonStr,
+    static void                         SFromStr            (std::u8string_view             aJsonStr,
                                                              GpReflectObject&               aOut,
                                                              const GpJsonSerializerFlags&   aFlags);
 
     template <typename T> static
-    typename T::SP                      SFromStr            (std::string_view               aJsonStr,
+    typename T::SP                      SFromStr            (std::u8string_view             aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
 
-    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::string_view               aJsonStr,
+    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::u8string_view             aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::string_view               aJsonStr,
+    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::u8string_view             aJsonStr,
                                                              const GpReflectModel&          aModel,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::string_view                           aJsonStr,
+    static GpReflectObject::C::Vec::SP  SFromStrVec         (std::u8string_view                         aJsonStr,
                                                              const std::vector<const GpReflectModel*>&  aModelVariants,
                                                              const GpJsonSerializerFlags&               aFlags);
 
     template <typename T> static
-    typename T::C::Vec::SP              SFromStrVec         (std::string_view               aJsonStr,
+    typename T::C::Vec::SP              SFromStrVec         (std::u8string_view             aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
 
     static GpReflectObject::SP          SFromStrInsitu      (GpSpanPtrCharRW                aJsonStr,
@@ -69,7 +72,7 @@ public:
     typename T::SP                      SFromStrInsitu      (GpSpanPtrCharRW                aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
 
-    static std::string                  SToStr              (const GpReflectObject&         aObject,
+    static std::u8string                SToStr              (const GpReflectObject&         aObject,
                                                              const GpJsonSerializerFlags&   aFlags);
     static void                         SToStr              (const GpReflectObject&         aObject,
                                                              GpByteWriter&                  aWriter,
@@ -79,7 +82,7 @@ public:
 template <typename T>
 typename T::SP  GpJsonSerializer::SFromStr
 (
-    std::string_view            aJsonStr,
+    std::u8string_view              aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {
@@ -90,7 +93,7 @@ typename T::SP  GpJsonSerializer::SFromStr
 template <typename T>
 typename T::C::Vec::SP  GpJsonSerializer::SFromStrVec
 (
-    std::string_view            aJsonStr,
+    std::u8string_view              aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {
@@ -110,7 +113,7 @@ typename T::C::Vec::SP  GpJsonSerializer::SFromStrVec
 template <typename T>
 typename T::SP  GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharRW             aJsonStr,
+    GpSpanPtrCharRW                 aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {

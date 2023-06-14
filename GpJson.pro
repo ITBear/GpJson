@@ -21,16 +21,22 @@ os_linux{
 
 SOURCES += \
 	GpJsonFromObject.cpp \
+	GpJsonFromXml.cpp \
 	GpJsonSerializer.cpp \
+	GpJsonSerializerCtx.cpp \
 	GpJsonSerializerFactory.cpp \
 	GpJsonSerializerFlags.cpp \
 	GpJsonToObject.cpp
 
 HEADERS += \
+    GpJsonConfigure.hpp \
     GpJsonFromObject.hpp \
+    GpJsonFromXml.hpp \
     GpJsonSerializer.hpp \
+    GpJsonSerializerCtx.hpp \
     GpJsonSerializerFactory.hpp \
     GpJsonSerializerFlags.hpp \
     GpJsonToObject.hpp \
+    GpJsonUtilsInternal.hpp \
     GpJson_global.hpp \
     GpJson.hpp

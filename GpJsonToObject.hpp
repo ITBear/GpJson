@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GpJsonSerializerFlags.hpp"
+#include "../GpCore2/GpReflection/GpReflectObject.hpp"
 
 #define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
 
@@ -13,18 +14,20 @@ GP_WARNING_POP()
 
 namespace GPlatform {
 
-class GP_JSON_API GpJsonToObject
+class GpJsonToObject
 {
 public:
-    CLASS_REMOVE_CTRS_DEFAULT_MOVE_COPY(GpJsonToObject);
+    CLASS_REMOVE_CTRS_DEFAULT_MOVE_COPY(GpJsonToObject)
+
+    using ParseResT = std::variant<rapidjson::Document::ConstObject, rapidjson::Document::ConstArray>;
 
 public:
-    static rapidjson::Document::ConstObject SParseJsonDom       (std::string_view       aJsonStr,
+    static rapidjson::Document::ConstObject SParseJsonDom       (std::u8string_view     aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
-    static rapidjson::Document::ConstArray  SParseJsonDomVec    (std::string_view       aJsonStr,
+    static rapidjson::Document::ConstArray  SParseJsonDomVec    (std::u8string_view     aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
 
-    static rapidjson::Document::ConstObject SParseJsonDomInsitu (GpSpanPtrCharRW        aJsonStr,
+    static ParseResT                        SParseJsonDomInsitu (GpSpanPtrCharRW        aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
     static void                             SReadObject         (GpReflectObject&                           aObject,
                                                                  const rapidjson::Document::ConstObject&    aJsonObject,
@@ -40,7 +43,7 @@ private:
     static std::optional<GpUUID>            SFindModelUid       (const rapidjson::Document::ConstObject&    aJsonObject);
 
 private:
-    static const std::array<std::string_view, 18>   sParseErrorCodes;
+    static const std::array<std::u8string_view, 18> sParseErrorCodes;
 };
 
 }//namespace GPlatform

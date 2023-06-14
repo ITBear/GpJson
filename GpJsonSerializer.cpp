@@ -1,6 +1,7 @@
 #include "GpJsonSerializer.hpp"
 #include "GpJsonToObject.hpp"
 #include "GpJsonFromObject.hpp"
+#include "GpJsonSerializerCtx.hpp"
 
 namespace GPlatform {
 
@@ -10,7 +11,7 @@ GpJsonSerializer::~GpJsonSerializer (void) noexcept
 
 GpReflectObject::SP GpJsonSerializer::ToObject (GpSpanPtrByteR aData) const
 {
-    return SFromStr(aData.AsStringView(), iFlags);
+    return SFromStr(aData.AsStringViewU8(), iFlags);
 }
 
 GpReflectObject::SP GpJsonSerializer::ToObject
@@ -19,7 +20,7 @@ GpReflectObject::SP GpJsonSerializer::ToObject
     const GpReflectModel&   aModel
 ) const
 {
-    return SFromStr(aData.AsStringView(), aModel, iFlags);
+    return SFromStr(aData.AsStringViewU8(), aModel, iFlags);
 }
 
 GpReflectObject::SP GpJsonSerializer::ToObject
@@ -28,7 +29,35 @@ GpReflectObject::SP GpJsonSerializer::ToObject
     const std::vector<const GpReflectModel*>&   aModelVariants
 ) const
 {
-    return SFromStr(aData.AsStringView(), aModelVariants, iFlags);
+    return SFromStr(aData.AsStringViewU8(), aModelVariants, iFlags);
+}
+
+GpReflectObject::SP GpJsonSerializer::ToObject
+(
+    GpReflectSerializerCtx&     aCtx,
+    const GpReflectModel&       aModel
+) const
+{
+    const GpJsonSerializerCtx& ctx = static_cast<const GpJsonSerializerCtx&>(aCtx);
+
+    if (ctx.IsArray())
+    {
+        return aModel.NewInstance();
+    }
+
+    const rapidjson::Document::ConstObject& jsonObject = ctx.RootValue<rapidjson::Document::ConstObject>();
+
+    const GpReflectModel& model = GpJsonToObject::SCheckModel
+    (
+        jsonObject,
+        aModel
+    );
+
+    GpReflectObject::SP object = model.NewInstance();
+
+    GpJsonToObject::SReadObject(object.Vn(), jsonObject, iFlags);
+
+    return object;
 }
 
 void    GpJsonSerializer::FromObject
@@ -42,7 +71,7 @@ void    GpJsonSerializer::FromObject
 
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
-    std::string_view                aJsonStr,
+    std::u8string_view              aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {
@@ -66,7 +95,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
-    std::string_view                aJsonStr,
+    std::u8string_view              aJsonStr,
     const GpReflectModel&           aModel,
     const GpJsonSerializerFlags&    aFlags
 )
@@ -88,9 +117,9 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
-    std::string_view                        aJsonStr,
+    std::u8string_view                          aJsonStr,
     const std::vector<const GpReflectModel*>&   aModelVariants,
-    const GpJsonSerializerFlags&            aFlags
+    const GpJsonSerializerFlags&                aFlags
 )
 {
     rapidjson::Document                 jsonDOM;
@@ -110,7 +139,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 
 void    GpJsonSerializer::SFromStr
 (
-    std::string_view                aJsonStr,
+    std::u8string_view              aJsonStr,
     GpReflectObject&                aOut,
     const GpJsonSerializerFlags&    aFlags
 )
@@ -123,7 +152,7 @@ void    GpJsonSerializer::SFromStr
 
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
-    std::string_view                aJsonStr,
+    std::u8string_view              aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {
@@ -155,7 +184,7 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
-    std::string_view                aJsonStr,
+    std::u8string_view              aJsonStr,
     const GpReflectModel&           aModel,
     const GpJsonSerializerFlags&    aFlags
 )
@@ -184,9 +213,9 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
-    std::string_view                        aJsonStr,
+    std::u8string_view                          aJsonStr,
     const std::vector<const GpReflectModel*>&   aModelVariants,
-    const GpJsonSerializerFlags&            aFlags
+    const GpJsonSerializerFlags&                aFlags
 )
 {
     rapidjson::Document             jsonDOM;
@@ -217,8 +246,16 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
     const GpJsonSerializerFlags&    aFlags
 )
 {
-    rapidjson::Document                 jsonDOM;
-    rapidjson::Document::ConstObject    jsonObject  = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
+    rapidjson::Document         jsonDOM;
+    GpJsonToObject::ParseResT   parseRes    = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
+
+    THROW_COND_GP
+    (
+        std::holds_alternative<rapidjson::Document::ConstObject>(parseRes),
+        "Json root must be object, not array"_sv
+    );
+
+    rapidjson::Document::ConstObject    jsonObject  = std::get<rapidjson::Document::ConstObject>(parseRes);
     GpReflectModel::C::Opt::CRef        modelOpt    = GpJsonToObject::SFindModel(jsonObject);
 
     THROW_COND_GP
@@ -242,8 +279,16 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
     const GpJsonSerializerFlags&    aFlags
 )
 {
-    rapidjson::Document                 jsonDOM;
-    rapidjson::Document::ConstObject    jsonObject  = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
+    rapidjson::Document         jsonDOM;
+    GpJsonToObject::ParseResT   parseRes    = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
+
+    THROW_COND_GP
+    (
+        std::holds_alternative<rapidjson::Document::ConstObject>(parseRes),
+        "Json root must be object, not array"_sv
+    );
+
+    rapidjson::Document::ConstObject    jsonObject  = std::get<rapidjson::Document::ConstObject>(parseRes);
     const GpReflectModel&               model       = GpJsonToObject::SCheckModel
     (
         jsonObject,
@@ -259,18 +304,26 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 
 void    GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharRW             aJsonStr,
-    GpReflectObject&            aOut,
+    GpSpanPtrCharRW                 aJsonStr,
+    GpReflectObject&                aOut,
     const GpJsonSerializerFlags&    aFlags
 )
 {
-    rapidjson::Document                 jsonDOM;
-    rapidjson::Document::ConstObject    jsonObject  = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
+    rapidjson::Document         jsonDOM;
+    GpJsonToObject::ParseResT   parseRes    = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
+
+    THROW_COND_GP
+    (
+        std::holds_alternative<rapidjson::Document::ConstObject>(parseRes),
+        "Json root must be object, not array"_sv
+    );
+
+    rapidjson::Document::ConstObject    jsonObject  = std::get<rapidjson::Document::ConstObject>(parseRes);
 
     GpJsonToObject::SReadObject(aOut, jsonObject, aFlags);
 }
 
-std::string GpJsonSerializer::SToStr
+std::u8string   GpJsonSerializer::SToStr
 (
     const GpReflectObject&          aObject,
     const GpJsonSerializerFlags&    aFlags

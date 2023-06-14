@@ -1,5 +1,11 @@
 #include "GpJsonToObject.hpp"
 
+#include "../GpCore2/GpUtils/Encoders/GpBase64.hpp"
+#include "../GpCore2/GpReflection/GpReflectManager.hpp"
+#include "../GpCore2/GpReflection/GpReflectUtils.hpp"
+#include "../GpCore2/GpReflection/GpReflectVisitor.hpp"
+#include "GpJsonUtilsInternal.hpp"
+
 namespace GPlatform {
 
 //------------------------------------- JVisitor_VisitCtx ------------------------------------------
@@ -17,10 +23,10 @@ double  JVisitor_SReadDouble (const rapidjson::Document::GenericValue& aJsonValu
         res = NumOps::SConvert<double>(aJsonValue.GetInt64());
     } else if (aJsonValue.IsInt())
     {
-        res = NumOps::SConvert<double>(aJsonValue.IsInt());
+        res = NumOps::SConvert<double>(static_cast<int>(aJsonValue.IsInt()));
     } else if (aJsonValue.IsString())
     {
-        const auto r = StrOps::SToNumeric(std::string_view(aJsonValue.GetString(), aJsonValue.GetStringLength()));
+        const auto r = StrOps::SToNumeric(_JsonValue2SV(aJsonValue));
         if (std::holds_alternative<double>(r))
         {
             return std::get<double>(r);
@@ -30,7 +36,7 @@ double  JVisitor_SReadDouble (const rapidjson::Document::GenericValue& aJsonValu
         }
     } else
     {
-        THROW_GP("Unsupported type"_sv);
+        THROW_GP(u8"Unsupported type"_sv);
     }
 
     return res;
@@ -148,14 +154,15 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ? aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
+    std::u8string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
+                                  aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
 
     //Find json member
     iMit = aCtx.iJsonObject.FindMember
     (
         rapidjson::Document::ValueType
         (
-            propName.data(),
+            GpUTF::S_UTF8_To_STR(propName).data(),
             NumOps::SConvert<rapidjson::SizeType>(propName.size())
         )
     );
@@ -193,8 +200,7 @@ void    JVisitor_VisitValueCtx::Value_UInt8
         aProp.Value_UInt8(aDataPtr) = NumOps::SConvert<u_int_8>(iMitVal->GetUint64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_UInt8(aDataPtr) = NumOps::SConvert<u_int_8>(StrOps::SToUI64(sval));
+        aProp.Value_UInt8(aDataPtr) = NumOps::SConvert<u_int_8>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -210,8 +216,7 @@ void    JVisitor_VisitValueCtx::Value_SInt8
         aProp.Value_SInt8(aDataPtr) = NumOps::SConvert<s_int_8>(iMitVal->GetInt64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_SInt8(aDataPtr) = NumOps::SConvert<s_int_8>(StrOps::SToSI64(sval));
+        aProp.Value_SInt8(aDataPtr) = NumOps::SConvert<s_int_8>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -227,8 +232,7 @@ void    JVisitor_VisitValueCtx::Value_UInt16
         aProp.Value_UInt16(aDataPtr) = NumOps::SConvert<u_int_16>(iMitVal->GetUint64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_UInt16(aDataPtr) = NumOps::SConvert<u_int_16>(StrOps::SToUI64(sval));
+        aProp.Value_UInt16(aDataPtr) = NumOps::SConvert<u_int_16>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -244,8 +248,7 @@ void    JVisitor_VisitValueCtx::Value_SInt16
         aProp.Value_SInt16(aDataPtr) = NumOps::SConvert<s_int_16>(iMitVal->GetInt64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_SInt16(aDataPtr) = NumOps::SConvert<s_int_16>(StrOps::SToSI64(sval));
+        aProp.Value_SInt16(aDataPtr) = NumOps::SConvert<s_int_16>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -261,8 +264,7 @@ void    JVisitor_VisitValueCtx::Value_UInt32
         aProp.Value_UInt32(aDataPtr) = NumOps::SConvert<u_int_32>(iMitVal->GetUint64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_UInt32(aDataPtr) = NumOps::SConvert<u_int_32>(StrOps::SToUI64(sval));
+        aProp.Value_UInt32(aDataPtr) = NumOps::SConvert<u_int_32>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -278,8 +280,7 @@ void    JVisitor_VisitValueCtx::Value_SInt32
         aProp.Value_SInt32(aDataPtr) = NumOps::SConvert<s_int_32>(iMitVal->GetInt64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_SInt32(aDataPtr) = NumOps::SConvert<s_int_32>(StrOps::SToSI64(sval));
+        aProp.Value_SInt32(aDataPtr) = NumOps::SConvert<s_int_32>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -295,8 +296,7 @@ void    JVisitor_VisitValueCtx::Value_UInt64
         aProp.Value_UInt64(aDataPtr) = NumOps::SConvert<u_int_64>(iMitVal->GetUint64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_UInt64(aDataPtr) = NumOps::SConvert<u_int_64>(StrOps::SToUI64(sval));
+        aProp.Value_UInt64(aDataPtr) = NumOps::SConvert<u_int_64>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -312,8 +312,7 @@ void    JVisitor_VisitValueCtx::Value_SInt64
         aProp.Value_SInt64(aDataPtr) = NumOps::SConvert<s_int_64>(iMitVal->GetInt64());
     } else
     {
-        std::string_view sval = std::string_view(iMitVal->GetString(), iMitVal->GetStringLength());
-        aProp.Value_SInt64(aDataPtr) = NumOps::SConvert<s_int_64>(StrOps::SToSI64(sval));
+        aProp.Value_SInt64(aDataPtr) = NumOps::SConvert<s_int_64>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
     }
 }
 
@@ -354,7 +353,7 @@ void    JVisitor_VisitValueCtx::Value_UUID
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    aProp.Value_UUID(aDataPtr) = GpUUID::SFromString({iMitVal->GetString(), iMitVal->GetStringLength()});
+    aProp.Value_UUID(aDataPtr) = GpUUID::SFromString(_JsonValue2SV(iMitVal));
 }
 
 void    JVisitor_VisitValueCtx::Value_String
@@ -364,7 +363,7 @@ void    JVisitor_VisitValueCtx::Value_String
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    aProp.Value_String(aDataPtr) = std::string(iMitVal->GetString(), iMitVal->GetStringLength());
+    aProp.Value_String(aDataPtr) = std::u8string(_JsonValue2SV(iMitVal));
 }
 
 void    JVisitor_VisitValueCtx::Value_BLOB
@@ -374,8 +373,7 @@ void    JVisitor_VisitValueCtx::Value_BLOB
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    std::string_view str(iMitVal->GetString(), iMitVal->GetStringLength());
-    aProp.Value_BLOB(aDataPtr) = GpBase64::SDecodeToByteArray(str);
+    aProp.Value_BLOB(aDataPtr) = GpBase64::SDecodeToByteArray(_JsonValue2SV(iMitVal));
 }
 
 void    JVisitor_VisitValueCtx::Value_Object
@@ -419,7 +417,7 @@ void    JVisitor_VisitValueCtx::Value_Enum
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    aProp.Value_Enum(aDataPtr).FromString({iMitVal->GetString(), iMitVal->GetStringLength()});
+    aProp.Value_Enum(aDataPtr).FromString(_JsonValue2SV(iMitVal));
 }
 
 void    JVisitor_VisitValueCtx::Value_EnumFlags
@@ -434,7 +432,7 @@ void    JVisitor_VisitValueCtx::Value_EnumFlags
 
     for (const auto& v: array)
     {
-        enumFlags.Set(std::string_view(v.GetString(), v.GetStringLength()));
+        enumFlags.Set(_JsonValue2SV(v));
     }
 }
 
@@ -578,14 +576,15 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ? aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
+    std::u8string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
+                                  aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
 
     //Find json member
     iMit = aCtx.iJsonObject.FindMember
     (
         rapidjson::Document::ValueType
         (
-            propName.data(),
+            GpUTF::S_UTF8_To_STR(propName).data(),
             NumOps::SConvert<rapidjson::SizeType>(propName.size())
         )
     );
@@ -601,7 +600,7 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     THROW_COND_GP
     (
         iMitVal->IsArray(),
-        [&](){return "Json value '"_sv + propName + "' must be array"_sv;}
+        [&](){return u8"Json value '"_sv + propName + u8"' must be array"_sv;}
     );
 
     return true;
@@ -907,7 +906,7 @@ void    JVisitor_VisitContainerCtx::Value_UUID
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, GpUUID::SFromString({v.GetString(), v.GetStringLength()}));
+        ContainerInsert(container, GpUUID::SFromString(_JsonValue2SV(v)));
     }
 }
 
@@ -927,7 +926,7 @@ void    JVisitor_VisitContainerCtx::Value_String
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, std::string(v.GetString(), v.GetStringLength()));
+        ContainerInsert(container, std::u8string(_JsonValue2SV(v)));
     }
 }
 
@@ -947,8 +946,7 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
 
     for (const auto& v: jArray)
     {
-        std::string_view str(v.GetString(), v.GetStringLength());
-        ContainerInsert(container, GpBase64::SDecodeToByteArray(str));
+        ContainerInsert(container, GpBase64::SDecodeToByteArray(_JsonValue2SV(v)));
     }
 }
 
@@ -960,7 +958,7 @@ void    JVisitor_VisitContainerCtx::Value_Object
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    THROW_GP("Object arrays are not supported; use Object::SP instead."_sv);
+    THROW_GP(u8"Object arrays are not supported; use Object::SP instead."_sv);
 }
 
 template<typename ValGetterT>
@@ -1004,7 +1002,7 @@ void    JVisitor_VisitContainerCtx::Value_Enum
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    THROW_GP("Enum arrays are not supported."_sv);
+    THROW_GP(u8"Enum arrays are not supported."_sv);
 }
 
 template<typename ValGetterT>
@@ -1015,7 +1013,7 @@ void    JVisitor_VisitContainerCtx::Value_EnumFlags
     JVisitor_VisitCtx&      /*aCtx*/
 )
 {
-    THROW_GP("Enum flag arrays are not supported."_sv);
+    THROW_GP(u8"Enum flag arrays are not supported."_sv);
 }
 
 //------------------------------------- JVisitor_VisitMapCtx ------------------------------------------
@@ -1134,7 +1132,7 @@ public:
 
 private:
     template<typename T>
-    T                   ProcessMapKey               (std::string_view aValue);
+    T                   ProcessMapKey               (std::u8string_view aValue);
 
 public:
     rapidjson::Document::ConstMemberIterator    iMit;
@@ -1148,14 +1146,15 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ? aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
+    std::u8string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
+                                  aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
 
     //Find json member
     iMit = aCtx.iJsonObject.FindMember
     (
         rapidjson::Document::ValueType
         (
-            propName.data(),
+            GpUTF::S_UTF8_To_STR(propName).data(),
             NumOps::SConvert<rapidjson::SizeType>(propName.size())
         )
     );
@@ -1171,7 +1170,7 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
     THROW_COND_GP
     (
         iMitVal->IsObject(),
-        [&](){return "Json value '"_sv + propName + "' must be object"_sv;}
+        [&](){return u8"Json value '"_sv + propName + u8"' must be object"_sv;}
     );
 
     return true;
@@ -1206,7 +1205,7 @@ void    JVisitor_VisitMapCtx::K_UInt8
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<u_int_8>(value.GetUint64())
         );
     }
@@ -1231,7 +1230,7 @@ void    JVisitor_VisitMapCtx::K_SInt8
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<s_int_8>(value.GetInt64())
         );
     }
@@ -1256,7 +1255,7 @@ void    JVisitor_VisitMapCtx::K_UInt16
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<u_int_16>(value.GetUint64())
         );
     }
@@ -1281,7 +1280,7 @@ void    JVisitor_VisitMapCtx::K_SInt16
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<s_int_16>(value.GetInt64())
         );
     }
@@ -1306,7 +1305,7 @@ void    JVisitor_VisitMapCtx::K_UInt32
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<u_int_32>(value.GetUint64())
         );
     }
@@ -1331,7 +1330,7 @@ void    JVisitor_VisitMapCtx::K_SInt32
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<s_int_32>(value.GetInt64())
         );
     }
@@ -1356,7 +1355,7 @@ void    JVisitor_VisitMapCtx::K_UInt64
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<u_int_64>(value.GetUint64())
         );
     }
@@ -1381,7 +1380,7 @@ void    JVisitor_VisitMapCtx::K_SInt64
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<s_int_64>(value.GetInt64())
         );
     }
@@ -1407,7 +1406,7 @@ void    JVisitor_VisitMapCtx::K_Double
 
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             JVisitor_SReadDouble(value)
         );
     }
@@ -1433,7 +1432,7 @@ void    JVisitor_VisitMapCtx::K_Float
 
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             NumOps::SConvert<float>(JVisitor_SReadDouble(value))
         );
     }
@@ -1458,7 +1457,7 @@ void    JVisitor_VisitMapCtx::K_Bool
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             value.GetBool()
         );
     }
@@ -1483,8 +1482,8 @@ void    JVisitor_VisitMapCtx::K_UUID
         const auto& value   = v.value;
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
-            GpUUID::SFromString({value.GetString(), value.GetStringLength()})
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
+            GpUUID::SFromString(_JsonValue2SV(value))
         );
     }
 }
@@ -1507,11 +1506,11 @@ void    JVisitor_VisitMapCtx::K_String
         const auto& name    = v.name;
         const auto& value   = v.value;
 
-        std::string s({value.GetString(), value.GetStringLength()});
+        std::u8string s(_JsonValue2SV(value));
 
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             std::move(s)
         );
     }
@@ -1535,12 +1534,11 @@ void    JVisitor_VisitMapCtx::K_BLOB
         const auto& name    = v.name;
         const auto& value   = v.value;
 
-        std::string_view    str(value.GetString(), value.GetStringLength());
-        GpBytesArray        data = GpBase64::SDecodeToByteArray(str);
+        GpBytesArray data = GpBase64::SDecodeToByteArray(_JsonValue2SV(value));
 
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             std::move(data)
         );
     }
@@ -1578,14 +1576,14 @@ void    JVisitor_VisitMapCtx::K_ObjectSP
 
         container.try_emplace
         (
-            ProcessMapKey<KeyT>(std::string_view(name.GetString(), name.GetStringLength())),
+            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
             std::move(objectBaseSP)
         );
     }
 }
 
 template<typename T>
-T   JVisitor_VisitMapCtx::ProcessMapKey (std::string_view aValue)
+T   JVisitor_VisitMapCtx::ProcessMapKey (std::u8string_view aValue)
 {
     constexpr const GpReflectType::EnumT type = GpReflectUtils::SDetectType<T>();
 
@@ -1621,31 +1619,31 @@ T   JVisitor_VisitMapCtx::ProcessMapKey (std::string_view aValue)
         return NumOps::SConvert<float>(StrOps::SToDouble(aValue));
     } else if constexpr (type == GpReflectType::BOOLEAN)
     {
-        GpThrowCe<std::out_of_range>("Booleans are not supported as map key");
+        GpThrowCe<GpException>(u8"Booleans are not supported as map key");
     } else if constexpr (type == GpReflectType::UUID)
     {
         return GpUUID::SFromString(aValue);
     } else if constexpr (type == GpReflectType::STRING)
     {
-        return std::string(aValue);
+        return std::u8string(aValue);
     } else if constexpr (type == GpReflectType::BLOB)
     {
         return GpBase64::SDecodeToByteArray(aValue);/*StrOps::SToBytes(aValue);*/
     } else if constexpr (type == GpReflectType::OBJECT)
     {
-        GpThrowCe<std::out_of_range>("Objects are not supported as a map key");
+        GpThrowCe<GpException>(u8"Objects are not supported as a map key");
     } else if constexpr (type == GpReflectType::OBJECT_SP)
     {
-        GpThrowCe<std::out_of_range>("Objects SP are not supported as a map key");
+        GpThrowCe<GpException>(u8"Objects SP are not supported as a map key");
     } else if constexpr (type == GpReflectType::ENUM)
     {
-        GpThrowCe<std::out_of_range>("Enums are not supported as a map key");
+        GpThrowCe<GpException>(u8"Enums are not supported as a map key");
     } else if constexpr (type == GpReflectType::ENUM_FLAGS)
     {
-        GpThrowCe<std::out_of_range>("Enum flags are not supported as a map key");
+        GpThrowCe<GpException>(u8"Enum flags are not supported as a map key");
     } else
     {
-        GpThrowCe<std::out_of_range>("Unknown type '"_sv + GpReflectUtils::SModelName<T>() + "'");
+        GpThrowCe<GpException>(u8"Unknown type '"_sv + GpReflectUtils::SModelName<T>() + u8"'");
     }
 }
 
@@ -1664,31 +1662,31 @@ public:
 
 //-------------------------------------------------------------------------------
 
-const std::array<std::string_view, 18>  GpJsonToObject::sParseErrorCodes =
+const std::array<std::u8string_view, 18>    GpJsonToObject::sParseErrorCodes =
 {
-    "No error"_sv                                         , //kParseErrorNone = 0,
-    "The document is empty"_sv                            , //kParseErrorDocumentEmpty,
-    "The document root must not follow by other values"_sv, //kParseErrorDocumentRootNotSingular,
-    "Invalid value"_sv                                    , //kParseErrorValueInvalid,
-    "Missing a name for object member"_sv                 , //kParseErrorObjectMissName,
-    "Missing a colon after a name of object member"_sv    , //kParseErrorObjectMissColon,
-    "Missing a comma or '}' after an object member"_sv    , //kParseErrorObjectMissCommaOrCurlyBracket,
-    "Missing a comma or ']' after an array element"_sv    , //kParseErrorArrayMissCommaOrSquareBracket,
-    "Incorrect hex digit after \\u escape in string"_sv   , //kParseErrorStringUnicodeEscapeInvalidHex,
-    "The surrogate pair in string is invalid"_sv          , //kParseErrorStringUnicodeSurrogateInvalid,
-    "Invalid escape character in string"_sv               , //kParseErrorStringEscapeInvalid,
-    "Missing a closing quotation mark in string"_sv       , //kParseErrorStringMissQuotationMark,
-    "Invalid encoding in string"_sv                       , //kParseErrorStringInvalidEncoding,
-    "Number too big to be stored in double"_sv            , //kParseErrorNumberTooBig,
-    "Miss fraction part in number"_sv                     , //kParseErrorNumberMissFraction,
-    "Miss exponent in number"_sv                          , //kParseErrorNumberMissExponent,
-    "Parsing was terminated"_sv                           , //kParseErrorTermination,
-    "Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
+    u8"No error"_sv                                         , //kParseErrorNone = 0,
+    u8"The document is empty"_sv                            , //kParseErrorDocumentEmpty,
+    u8"The document root must not follow by other values"_sv, //kParseErrorDocumentRootNotSingular,
+    u8"Invalid value"_sv                                    , //kParseErrorValueInvalid,
+    u8"Missing a name for object member"_sv                 , //kParseErrorObjectMissName,
+    u8"Missing a colon after a name of object member"_sv    , //kParseErrorObjectMissColon,
+    u8"Missing a comma or '}' after an object member"_sv    , //kParseErrorObjectMissCommaOrCurlyBracket,
+    u8"Missing a comma or ']' after an array element"_sv    , //kParseErrorArrayMissCommaOrSquareBracket,
+    u8"Incorrect hex digit after \\u escape in string"_sv   , //kParseErrorStringUnicodeEscapeInvalidHex,
+    u8"The surrogate pair in string is invalid"_sv          , //kParseErrorStringUnicodeSurrogateInvalid,
+    u8"Invalid escape character in string"_sv               , //kParseErrorStringEscapeInvalid,
+    u8"Missing a closing quotation mark in string"_sv       , //kParseErrorStringMissQuotationMark,
+    u8"Invalid encoding in string"_sv                       , //kParseErrorStringInvalidEncoding,
+    u8"Number too big to be stored in double"_sv            , //kParseErrorNumberTooBig,
+    u8"Miss fraction part in number"_sv                     , //kParseErrorNumberMissFraction,
+    u8"Miss exponent in number"_sv                          , //kParseErrorNumberMissExponent,
+    u8"Parsing was terminated"_sv                           , //kParseErrorTermination,
+    u8"Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
 };
 
 rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
 (
-    std::string_view        aJsonStr,
+    std::u8string_view      aJsonStr,
     rapidjson::Document&    aJsonDOM
 )
 {
@@ -1699,10 +1697,11 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
     );
 
     //Check for errors
-    if (aJsonDOM.Parse(aJsonStr.data(), aJsonStr.size()).HasParseError())
+    std::string_view jsonStr = GpUTF::S_UTF8_To_STR(aJsonStr);
+    if (aJsonDOM.Parse(jsonStr.data(), jsonStr.size()).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(int(parseErrorCode)));
+        THROW_GP(u8"JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     //Check for root element is object
@@ -1717,7 +1716,7 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
 
 rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
 (
-    std::string_view        aJsonStr,
+    std::u8string_view      aJsonStr,
     rapidjson::Document&    aJsonDOM
 )
 {
@@ -1728,10 +1727,11 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
     );
 
     //Check for errors
-    if (aJsonDOM.Parse(aJsonStr.data(), aJsonStr.size()).HasParseError())
+    std::string_view jsonStr = GpUTF::S_UTF8_To_STR(aJsonStr);
+    if (aJsonDOM.Parse(jsonStr.data(), jsonStr.size()).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(int(parseErrorCode)));
+        THROW_GP(u8"JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     //Check for root element is object
@@ -1744,7 +1744,7 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
     return const_cast<const rapidjson::Document&>(aJsonDOM).GetArray();
 }
 
-rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDomInsitu
+GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
 (
     GpSpanPtrCharRW         aJsonStr,
     rapidjson::Document&    aJsonDOM
@@ -1757,20 +1757,22 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDomInsitu
     );
 
     //Check for errors
-    if (aJsonDOM.ParseInsitu(aJsonStr.Ptr()).HasParseError())
+    if (aJsonDOM.ParseInsitu(reinterpret_cast<char*>(aJsonStr.Ptr())).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(int(parseErrorCode)));
+        THROW_GP(u8"JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
-    //Check for root element is object
-    THROW_COND_GP
-    (
-        aJsonDOM.IsObject(),
-        "Json root element must be object"_sv
-    );
-
-    return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
+    if (aJsonDOM.IsObject())
+    {
+        return const_cast<const rapidjson::Document&>(aJsonDOM).GetObject();
+    } else if (aJsonDOM.IsArray())
+    {
+        return const_cast<const rapidjson::Document&>(aJsonDOM).GetArray();
+    } else
+    {
+        THROW_GP(u8"Json root element must be object or array"_sv);
+    }
 }
 
 void    GpJsonToObject::SReadObject
@@ -1818,8 +1820,8 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
 
     THROW_GP
     (
-        "Model in json must be derived from model in code. But code model UID "_sv + modelUidBase
-        + " and json model UID "_sv + modelUidJson
+        u8"Model in json must be derived from model in code. But code model UID "_sv + modelUidBase
+        + u8" and json model UID "_sv + modelUidJson
     );
 }
 
@@ -1858,8 +1860,8 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
 
     THROW_GP
     (
-        "Model in json must be derived from model in code. But code model UID "_sv + modelUidBase
-        + " and json model UID "_sv + modelUidJson
+        u8"Model in json must be derived from model in code. But code model UID "_sv + modelUidBase
+        + u8" and json model UID "_sv + modelUidJson
     );
 }
 
@@ -1888,7 +1890,7 @@ std::optional<GpUUID>   GpJsonToObject::SFindModelUid (const rapidjson::Document
 
     const auto& mitUidVal = mit->value;
 
-    const GpUUID modelUid = GpUUID::SFromString({mitUidVal.GetString(), mitUidVal.GetStringLength()});
+    const GpUUID modelUid = GpUUID::SFromString(_JsonValue2SV(mitUidVal));
 
     return modelUid;
 }
