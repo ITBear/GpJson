@@ -1692,7 +1692,7 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
 {
     THROW_COND_GP
     (
-        aJsonStr.size() > 0,
+        !aJsonStr.empty(),
         "Json string is empty"_sv
     );
 
@@ -1722,7 +1722,7 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
 {
     THROW_COND_GP
     (
-        aJsonStr.size() > 0,
+        !aJsonStr.empty(),
         "Json string is empty"_sv
     );
 
