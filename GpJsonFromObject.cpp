@@ -559,7 +559,7 @@ void    JVisitor_VisitContainerCtx::Value_UInt8
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::UInt8(aDataPtr, aProp);
+    const auto& container = ValGetterT::UInt8(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const u_int_8 e: container)
@@ -576,7 +576,7 @@ void    JVisitor_VisitContainerCtx::Value_SInt8
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::SInt8(aDataPtr, aProp);
+    const auto& container = ValGetterT::SInt8(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const s_int_8 e: container)
@@ -610,7 +610,7 @@ void    JVisitor_VisitContainerCtx::Value_SInt16
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::SInt16(aDataPtr, aProp);
+    const auto& container = ValGetterT::SInt16(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const s_int_16 e: container)
@@ -627,7 +627,7 @@ void    JVisitor_VisitContainerCtx::Value_UInt32
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::UInt32(aDataPtr, aProp);
+    const auto& container = ValGetterT::UInt32(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const u_int_32 e: container)
@@ -644,7 +644,7 @@ void    JVisitor_VisitContainerCtx::Value_SInt32
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::SInt32(aDataPtr, aProp);
+    const auto& container = ValGetterT::SInt32(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const s_int_32 e: container)
@@ -661,7 +661,7 @@ void    JVisitor_VisitContainerCtx::Value_UInt64
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::UInt64(aDataPtr, aProp);
+    const auto& container = ValGetterT::UInt64(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const u_int_64 e: container)
@@ -678,7 +678,7 @@ void    JVisitor_VisitContainerCtx::Value_SInt64
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::SInt64(aDataPtr, aProp);
+    const auto& container = ValGetterT::SInt64(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const s_int_64 e: container)
@@ -695,7 +695,7 @@ void    JVisitor_VisitContainerCtx::Value_Double
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::Double(aDataPtr, aProp);
+    const auto& container = ValGetterT::Double(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const double e: container)
@@ -712,7 +712,7 @@ void    JVisitor_VisitContainerCtx::Value_Float
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::Float(aDataPtr, aProp);
+    const auto& container = ValGetterT::Float(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const float e: container)
@@ -733,7 +733,7 @@ void    JVisitor_VisitContainerCtx::Value_Bool
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::Bool(aDataPtr, aProp);
+    const auto& container = ValGetterT::Bool(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const bool e: container)
@@ -750,7 +750,7 @@ void    JVisitor_VisitContainerCtx::Value_UUID
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::UUID(aDataPtr, aProp);
+    const auto& container = ValGetterT::UUID(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const GpUUID& e: container)
@@ -772,7 +772,7 @@ void    JVisitor_VisitContainerCtx::Value_String
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::String(aDataPtr, aProp);
+    const auto& container = ValGetterT::String(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const std::u8string& e: container)
@@ -793,7 +793,7 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::BLOB(aDataPtr, aProp);
+    const auto& container = ValGetterT::BLOB(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const GpBytesArray& e: container)
@@ -810,12 +810,27 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
 template<typename ValGetterT>
 void    JVisitor_VisitContainerCtx::Value_Object
 (
-    const void*             /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
+    const void*             aDataPtr,
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
 )
 {
-    THROW_GP(u8"Object arrays are not supported, use arrays of Object::SP instead"_sv);
+    const auto& container = ValGetterT::Object(aDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+
+    const size_t size = container.size();
+
+    for (size_t id = 0; id < size; id++)
+    {
+        rapidjson::Value jv;
+
+        const GpReflectObject&              object      = container[id];
+        const bool                          isAsTuple   = aProp.FlagTest(GpReflectPropFlag::AS_TUPLE);
+        rapidjson::Document::GenericValue&  obj         = isAsTuple ? jv.SetArray() : jv.SetObject();
+        GpJsonFromObject::SWrite(object, obj, aCtx.iJsonAllocator, aCtx.iJsonSerializerFlags, isAsTuple);
+
+        iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
+    }
 }
 
 template<typename ValGetterT>
@@ -826,7 +841,7 @@ void    JVisitor_VisitContainerCtx::Value_ObjectSP
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::ObjectSP(aDataPtr, aProp);
+    const auto& container = ValGetterT::ObjectSP(aDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
 
     for (const GpReflectObject::SP& e: container)

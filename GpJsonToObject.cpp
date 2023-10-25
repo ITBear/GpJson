@@ -540,29 +540,37 @@ public:
                                                      JVisitor_VisitCtx&     aCtx);
 
 private:
-    template<typename VT>
-    void                ContainerReserve            (std::vector<VT>&   aContainer,
-                                                     const size_t       aSize);
+    template<typename T>
+    static void         SClear                      (std::array<T, 0>&) {}
 
-    template<typename VT,
-             template<typename... TArgs> class CT>
-    void                ContainerReserve            (CT<VT>&        aContainer,
-                                                     const size_t   aSize);
+    template<typename T>
+    static void         SClear                      (std::vector<T>& aVector) {aVector.clear();}
 
-    template<typename VT,
+    static void         SClear                      (GpVectorReflectObjWrapBase& aVector) {aVector.clear();}
+
+    template<typename T>
+    static void         SReserve                    (std::array<T, 0>&,
+                                                     const size_t) {}
+
+    template<typename T>
+    static void         SReserve                    (std::vector<T>&    aVector,
+                                                     const size_t       aSize) {aVector.reserve(aSize);}
+
+    static void         SReserve                    (GpVectorReflectObjWrapBase&    aVector,
+                                                     const size_t                   aSize) {aVector.reserve(aSize);}
+
+    template<typename T,
              typename... Ts>
-    void                ContainerInsert             (std::vector<VT>&   aContainer,
-                                                     Ts&&...            aArgs);
+    void                SEmplaceBack                (std::array<T, 0>&,
+                                                     Ts&&...) {}
 
-    template<typename VT,
+    template<typename T,
              typename... Ts>
-    void                ContainerInsert             (std::list<VT>& aContainer,
-                                                     Ts&&...        aArgs);
+    void                SEmplaceBack                (std::vector<T>&    aVector,
+                                                     Ts&&...            aArgs) {aVector.emplace_back(std::forward<Ts>(aArgs)...);}
 
-    template<typename VT,
-             typename... Ts>
-    void                ContainerInsert             (std::set<VT>&  aContainer,
-                                                     Ts&&...        aArgs);
+    void                SEmplaceBack                (GpVectorReflectObjWrapBase&    aVector,
+                                                     GpReflectObject&&              aValue) {aVector.emplace_back(std::move(aValue));}
 
 public:
     rapidjson::Document::ConstMemberIterator    iMit;
@@ -616,60 +624,6 @@ void    JVisitor_VisitContainerCtx::OnVisitEnd
     //NOP
 }
 
-template<typename VT>
-void    JVisitor_VisitContainerCtx::ContainerReserve
-(
-    std::vector<VT>&    aContainer,
-    const size_t    aSize
-)
-{
-    aContainer.reserve(aSize);
-}
-
-template<typename VT,
-         template<typename... TArgs> class CT>
-void    JVisitor_VisitContainerCtx::ContainerReserve
-(
-    CT<VT>&         /*aContainer*/,
-    const size_t    /*aSize*/
-)
-{
-    //NOP
-}
-
-template<typename VT,
-         typename... Ts>
-void    JVisitor_VisitContainerCtx::ContainerInsert
-(
-    std::vector<VT>&    aContainer,
-    Ts&&...         aArgs
-)
-{
-    aContainer.emplace_back(std::forward<Ts>(aArgs)...);
-}
-
-template<typename VT,
-         typename... Ts>
-void    JVisitor_VisitContainerCtx::ContainerInsert
-(
-    std::list<VT>&  aContainer,
-    Ts&&...         aArgs
-)
-{
-    aContainer.emplace_back(std::forward<Ts>(aArgs)...);
-}
-
-template<typename VT,
-         typename... Ts>
-void    JVisitor_VisitContainerCtx::ContainerInsert
-(
-    std::set<VT>&   aContainer,
-    Ts&&...         aArgs
-)
-{
-    aContainer.insert(std::forward<Ts>(aArgs)...);
-}
-
 template<typename ValGetterT>
 void    JVisitor_VisitContainerCtx::Value_UInt8
 (
@@ -681,12 +635,12 @@ void    JVisitor_VisitContainerCtx::Value_UInt8
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::UInt8(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<u_int_8>(v.GetUint64()));
+        SEmplaceBack(container, NumOps::SConvert<u_int_8>(v.GetUint64()));
     }
 }
 
@@ -701,12 +655,12 @@ void    JVisitor_VisitContainerCtx::Value_SInt8
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::SInt8(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<s_int_8>(v.GetInt64()));
+        SEmplaceBack(container, NumOps::SConvert<s_int_8>(v.GetInt64()));
     }
 }
 
@@ -721,12 +675,12 @@ void    JVisitor_VisitContainerCtx::Value_UInt16
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::UInt16(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<u_int_16>(v.GetUint64()));
+        SEmplaceBack(container, NumOps::SConvert<u_int_16>(v.GetUint64()));
     }
 }
 
@@ -741,12 +695,12 @@ void    JVisitor_VisitContainerCtx::Value_SInt16
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::SInt16(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<s_int_16>(v.GetInt64()));
+        SEmplaceBack(container, NumOps::SConvert<s_int_16>(v.GetInt64()));
     }
 }
 
@@ -761,12 +715,12 @@ void    JVisitor_VisitContainerCtx::Value_UInt32
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::UInt32(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<u_int_32>(v.GetUint64()));
+        SEmplaceBack(container, NumOps::SConvert<u_int_32>(v.GetUint64()));
     }
 }
 
@@ -781,12 +735,12 @@ void    JVisitor_VisitContainerCtx::Value_SInt32
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::SInt32(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<s_int_32>(v.GetInt64()));
+        SEmplaceBack(container, NumOps::SConvert<s_int_32>(v.GetInt64()));
     }
 }
 
@@ -801,12 +755,12 @@ void    JVisitor_VisitContainerCtx::Value_UInt64
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::UInt64(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<u_int_64>(v.GetUint64()));
+        SEmplaceBack(container, NumOps::SConvert<u_int_64>(v.GetUint64()));
     }
 }
 
@@ -821,12 +775,12 @@ void    JVisitor_VisitContainerCtx::Value_SInt64
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::SInt64(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<s_int_64>(v.GetInt64()));
+        SEmplaceBack(container, NumOps::SConvert<s_int_64>(v.GetInt64()));
     }
 }
 
@@ -841,12 +795,12 @@ void    JVisitor_VisitContainerCtx::Value_Double
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::Double(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, JVisitor_SReadDouble(v));
+        SEmplaceBack(container, JVisitor_SReadDouble(v));
     }
 }
 
@@ -861,12 +815,12 @@ void    JVisitor_VisitContainerCtx::Value_Float
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::Float(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, NumOps::SConvert<float>(JVisitor_SReadDouble(v)));
+        SEmplaceBack(container, NumOps::SConvert<float>(JVisitor_SReadDouble(v)));
     }
 }
 
@@ -881,12 +835,12 @@ void    JVisitor_VisitContainerCtx::Value_Bool
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::Bool(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, v.GetBool());
+        SEmplaceBack(container, v.GetBool());
     }
 }
 
@@ -901,12 +855,12 @@ void    JVisitor_VisitContainerCtx::Value_UUID
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::UUID(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, GpUUID::SFromString(_JsonValue2SV(v)));
+        SEmplaceBack(container, GpUUID::SFromString(_JsonValue2SV(v)));
     }
 }
 
@@ -921,12 +875,12 @@ void    JVisitor_VisitContainerCtx::Value_String
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::String(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, std::u8string(_JsonValue2SV(v)));
+        SEmplaceBack(container, std::u8string(_JsonValue2SV(v)));
     }
 }
 
@@ -941,28 +895,17 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
     auto& container = ValGetterT::BLOB(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        ContainerInsert(container, GpBase64::SDecodeToByteArray(_JsonValue2SV(v)));
+        SEmplaceBack(container, GpBase64::SDecodeToByteArray(_JsonValue2SV(v)));
     }
 }
 
 template<typename ValGetterT>
 void    JVisitor_VisitContainerCtx::Value_Object
-(
-    void*                   /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    THROW_GP(u8"Object arrays are not supported; use Object::SP instead."_sv);
-}
-
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_ObjectSP
 (
     void*                   aDataPtr,
     const GpReflectProp&    aProp,
@@ -971,9 +914,9 @@ void    JVisitor_VisitContainerCtx::Value_ObjectSP
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::ObjectSP(aDataPtr, aProp);
-    container.clear();
-    ContainerReserve(container, jArray.Size());
+    auto& container = ValGetterT::Object(aDataPtr, aProp);
+    SClear(container);
+    SReserve(container, jArray.Size());
 
     const GpReflectModel& model = GpReflectManager::S().Find(aProp.ModelUid());
 
@@ -990,7 +933,46 @@ void    JVisitor_VisitContainerCtx::Value_ObjectSP
         GpReflectObject&    objectBase      = objectBaseSP.Vn();
         GpJsonToObject::SReadObject(objectBase, jsonObject, aCtx.iJsonSerializerFlags);
 
-        ContainerInsert(container, std::move(objectBaseSP));
+        if constexpr (std::is_same_v<typename std::remove_cvref_t<decltype(container)>::value_type, GpReflectObject>)
+        {
+            SEmplaceBack(container, std::move(objectBase));
+        } else
+        {
+            SEmplaceBack(container, std::move(objectBaseSP));
+        }
+    }
+}
+
+template<typename ValGetterT>
+void    JVisitor_VisitContainerCtx::Value_ObjectSP
+(
+    void*                   aDataPtr,
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
+
+    auto& container = ValGetterT::ObjectSP(aDataPtr, aProp);
+    SClear(container);
+    SReserve(container, jArray.Size());
+
+    const GpReflectModel& model = GpReflectManager::S().Find(aProp.ModelUid());
+
+    for (const auto& v: jArray)
+    {
+        const rapidjson::Document::ConstObject& jsonObject  = v.GetObject();
+        const GpReflectModel&                   modelJson   = GpJsonToObject::SCheckModel
+        (
+            jsonObject,
+            model
+        );
+
+        GpReflectObject::SP objectBaseSP    = modelJson.NewInstance();
+        GpReflectObject&    objectBase      = objectBaseSP.Vn();
+        GpJsonToObject::SReadObject(objectBase, jsonObject, aCtx.iJsonSerializerFlags);
+
+        SEmplaceBack(container, std::move(objectBaseSP));
     }
 }
 
