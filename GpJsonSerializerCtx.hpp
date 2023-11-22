@@ -19,7 +19,7 @@ public:
     virtual                         ~GpJsonSerializerCtx    (void) noexcept;
 
     void                            Clear                   (void) noexcept;
-    void                            Init                    (GpSpanPtrCharRW aJsonStr);
+    void                            Init                    (GpSpanPtrCharU8RW aJsonStr);
     std::optional<std::u8string>    FindMemberStr           (const std::u8string& aName);
 
     bool                            IsArray                 (void) const noexcept {return iIsArray;}

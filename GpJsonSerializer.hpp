@@ -59,17 +59,17 @@ public:
     typename T::C::Vec::SP              SFromStrVec         (std::u8string_view             aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
 
-    static GpReflectObject::SP          SFromStrInsitu      (GpSpanPtrCharRW                aJsonStr,
+    static GpReflectObject::SP          SFromStrInsitu      (GpSpanPtrCharU8RW              aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static GpReflectObject::SP          SFromStrInsitu      (GpSpanPtrCharRW                aJsonStr,
+    static GpReflectObject::SP          SFromStrInsitu      (GpSpanPtrCharU8RW              aJsonStr,
                                                              const GpReflectModel&          aModel,
                                                              const GpJsonSerializerFlags&   aFlags);
-    static void                         SFromStrInsitu      (GpSpanPtrCharRW                aJsonStr,
+    static void                         SFromStrInsitu      (GpSpanPtrCharU8RW              aJsonStr,
                                                              GpReflectObject&               aOut,
                                                              const GpJsonSerializerFlags&   aFlags);
 
     template <typename T> static
-    typename T::SP                      SFromStrInsitu      (GpSpanPtrCharRW                aJsonStr,
+    typename T::SP                      SFromStrInsitu      (GpSpanPtrCharU8RW              aJsonStr,
                                                              const GpJsonSerializerFlags&   aFlags);
 
     static std::u8string                SToStr              (const GpReflectObject&         aObject,
@@ -113,7 +113,7 @@ typename T::C::Vec::SP  GpJsonSerializer::SFromStrVec
 template <typename T>
 typename T::SP  GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharRW                 aJsonStr,
+    GpSpanPtrCharU8RW               aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {

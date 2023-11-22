@@ -47,7 +47,7 @@ void    GpJsonSerializerCtx::Clear (void) noexcept
     }
 }
 
-void    GpJsonSerializerCtx::Init (GpSpanPtrCharRW aJsonStr)
+void    GpJsonSerializerCtx::Init (GpSpanPtrCharU8RW aJsonStr)
 {
     Clear();
 

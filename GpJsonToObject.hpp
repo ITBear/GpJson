@@ -27,7 +27,7 @@ public:
     static rapidjson::Document::ConstArray  SParseJsonDomVec    (std::u8string_view     aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
 
-    static ParseResT                        SParseJsonDomInsitu (GpSpanPtrCharRW        aJsonStr,
+    static ParseResT                        SParseJsonDomInsitu (GpSpanPtrCharU8RW      aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
     static void                             SReadObject         (GpReflectObject&                           aObject,
                                                                  const rapidjson::Document::ConstObject&    aJsonObject,

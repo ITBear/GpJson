@@ -242,7 +242,7 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
 GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharRW                 aJsonStr,
+    GpSpanPtrCharU8RW               aJsonStr,
     const GpJsonSerializerFlags&    aFlags
 )
 {
@@ -274,7 +274,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 
 GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharRW                 aJsonStr,
+    GpSpanPtrCharU8RW               aJsonStr,
     const GpReflectModel&           aModel,
     const GpJsonSerializerFlags&    aFlags
 )
@@ -304,7 +304,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 
 void    GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharRW                 aJsonStr,
+    GpSpanPtrCharU8RW               aJsonStr,
     GpReflectObject&                aOut,
     const GpJsonSerializerFlags&    aFlags
 )

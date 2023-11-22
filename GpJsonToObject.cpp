@@ -1728,7 +1728,7 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
 
 GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
 (
-    GpSpanPtrCharRW         aJsonStr,
+    GpSpanPtrCharU8RW       aJsonStr,
     rapidjson::Document&    aJsonDOM
 )
 {
