@@ -2,7 +2,7 @@
 
 #if defined(GP_USE_JSON_FROM_XML)
 
-#include "../GpCore2/GpUtils/Exceptions/GpException.hpp"
+#include <GpCore2/GpUtils/Exceptions/GpException.hpp>
 
 namespace GPlatform {
 

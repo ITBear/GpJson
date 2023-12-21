@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../GpCore2/Config/GpConfig.hpp"
+#include <GpCore2/Config/GpConfig.hpp>
 #include "GpJsonConfigure.hpp"
 
 #if defined(GP_USE_JSON_FROM_XML)
 
 #include "GpJson_global.hpp"
-#include "../GpCore2/GpUtils/Macro/GpMacroClass.hpp"
 
+#include <GpCore2/GpUtils/Macro/GpMacroClass.hpp>
 #include <string>
 
 namespace GPlatform {

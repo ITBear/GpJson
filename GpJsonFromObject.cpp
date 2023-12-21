@@ -1,10 +1,10 @@
 #include "GpJsonFromObject.hpp"
-
-#include "../GpCore2/GpReflection/GpReflectObject.hpp"
-#include "../GpCore2/GpReflection/GpReflectUtils.hpp"
-#include "../GpCore2/GpReflection/GpReflectVisitor.hpp"
-#include "../GpCore2/GpUtils/Encoders/GpBase64.hpp"
 #include "GpJsonUtilsInternal.hpp"
+
+#include <GpCore2/GpReflection/GpReflectObject.hpp>
+#include <GpCore2/GpReflection/GpReflectUtils.hpp>
+#include <GpCore2/GpReflection/GpReflectVisitor.hpp>
+#include <GpCore2/GpUtils/Encoders/GpBase64.hpp>
 
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>

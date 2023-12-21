@@ -1,10 +1,10 @@
 #include "GpJsonToObject.hpp"
-
-#include "../GpCore2/GpUtils/Encoders/GpBase64.hpp"
-#include "../GpCore2/GpReflection/GpReflectManager.hpp"
-#include "../GpCore2/GpReflection/GpReflectUtils.hpp"
-#include "../GpCore2/GpReflection/GpReflectVisitor.hpp"
 #include "GpJsonUtilsInternal.hpp"
+
+#include <GpCore2/GpUtils/Encoders/GpBase64.hpp>
+#include <GpCore2/GpReflection/GpReflectManager.hpp>
+#include <GpCore2/GpReflection/GpReflectUtils.hpp>
+#include <GpCore2/GpReflection/GpReflectVisitor.hpp>
 
 namespace GPlatform {
 

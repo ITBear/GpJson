@@ -1,7 +1,8 @@
 #pragma once
 
 #include "GpJsonSerializerFlags.hpp"
-#include "../GpCore2/GpReflection/GpReflectObject.hpp"
+
+#include <GpCore2/GpReflection/GpReflectObject.hpp>
 
 #define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
 

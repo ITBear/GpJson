@@ -2,9 +2,10 @@
 
 #include <string>
 #include <string_view>
-#include "../GpCore2/GpUtils/Types/Strings/GpUTF.hpp"
-#include "../GpCore2/GpUtils/Types/Strings/GpStringOps.hpp"
-#include "../GpCore2/GpUtils/Macro/GpMacroWarnings.hpp"
+
+#include <GpCore2/GpUtils/Types/Strings/GpUTF.hpp>
+#include <GpCore2/GpUtils/Types/Strings/GpStringOps.hpp>
+#include <GpCore2/GpUtils/Macro/GpMacroWarnings.hpp>
 
 #define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
 
