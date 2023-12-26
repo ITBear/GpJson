@@ -12,12 +12,12 @@ namespace GPlatform {
 
 std::u8string_view  _JsonValue2SV (const rapidjson::Document::GenericValue& aJsonValue)
 {
-    return GpUTF::S_STR_To_UTF8(std::string_view(aJsonValue.GetString(), aJsonValue.GetStringLength()));
+    return GpUTF::S_As_UTF8(std::string_view(aJsonValue.GetString(), aJsonValue.GetStringLength()));
 }
 
 std::u8string_view  _JsonValue2SV (const rapidjson::Document::GenericValue* aJsonValue)
 {
-    return GpUTF::S_STR_To_UTF8(std::string_view(aJsonValue->GetString(), aJsonValue->GetStringLength()));
+    return GpUTF::S_As_UTF8(std::string_view(aJsonValue->GetString(), aJsonValue->GetStringLength()));
 }
 
 GpJsonSerializerCtx::~GpJsonSerializerCtx (void) noexcept
@@ -86,7 +86,7 @@ std::optional<std::u8string>    GpJsonSerializerCtx::FindMemberStr (const std::u
     }
 
     const rapidjson::Document::ConstObject&     jsonObject  = RootValue<rapidjson::Document::ConstObject>();
-    rapidjson::Document::ConstMemberIterator    iter        = jsonObject.FindMember(GpUTF::S_UTF8_To_STR(aName).data());
+    rapidjson::Document::ConstMemberIterator    iter        = jsonObject.FindMember(GpUTF::S_As_STR(aName).data());
 
     if (iter != jsonObject.MemberEnd())
     {

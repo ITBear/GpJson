@@ -162,7 +162,7 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
     (
         rapidjson::Document::ValueType
         (
-            GpUTF::S_UTF8_To_STR(propName).data(),
+            GpUTF::S_As_STR(propName).data(),
             NumOps::SConvert<rapidjson::SizeType>(propName.size())
         )
     );
@@ -592,7 +592,7 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     (
         rapidjson::Document::ValueType
         (
-            GpUTF::S_UTF8_To_STR(propName).data(),
+            GpUTF::S_As_STR(propName).data(),
             NumOps::SConvert<rapidjson::SizeType>(propName.size())
         )
     );
@@ -1136,7 +1136,7 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
     (
         rapidjson::Document::ValueType
         (
-            GpUTF::S_UTF8_To_STR(propName).data(),
+            GpUTF::S_As_STR(propName).data(),
             NumOps::SConvert<rapidjson::SizeType>(propName.size())
         )
     );
@@ -1679,7 +1679,7 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
     );
 
     //Check for errors
-    std::string_view jsonStr = GpUTF::S_UTF8_To_STR(aJsonStr);
+    std::string_view jsonStr = GpUTF::S_As_STR(aJsonStr);
     if (aJsonDOM.Parse(jsonStr.data(), jsonStr.size()).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
@@ -1709,7 +1709,7 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
     );
 
     //Check for errors
-    std::string_view jsonStr = GpUTF::S_UTF8_To_STR(aJsonStr);
+    std::string_view jsonStr = GpUTF::S_As_STR(aJsonStr);
     if (aJsonDOM.Parse(jsonStr.data(), jsonStr.size()).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();

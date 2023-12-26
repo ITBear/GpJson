@@ -20,12 +20,12 @@ namespace GPlatform {
 
 inline std::u8string_view   _JsonValue2SV (const rapidjson::Document::GenericValue& aJsonValue)
 {
-    return GpUTF::S_STR_To_UTF8(std::string_view(aJsonValue.GetString(), aJsonValue.GetStringLength()));
+    return GpUTF::S_As_UTF8(std::string_view(aJsonValue.GetString(), aJsonValue.GetStringLength()));
 }
 
 inline std::u8string_view   _JsonValue2SV (const rapidjson::Document::GenericValue* aJsonValue)
 {
-    return GpUTF::S_STR_To_UTF8(std::string_view(aJsonValue->GetString(), aJsonValue->GetStringLength()));
+    return GpUTF::S_As_UTF8(std::string_view(aJsonValue->GetString(), aJsonValue->GetStringLength()));
 }
 
 inline void _JsonSetStr
@@ -52,7 +52,7 @@ inline void _JsonSetStr
 {
     aObj.SetString
     (
-        ::GPlatform::GpUTF::S_UTF8_To_STR(aValue).data(),
+        ::GPlatform::GpUTF::S_As_STR(aValue).data(),
         NumOps::SConvert<rapidjson::SizeType>(aValue.length()),
         aJsonAllocator
     );

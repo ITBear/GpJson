@@ -1504,7 +1504,7 @@ std::u8string   GpJsonFromObject::SToString (const rapidjson::Document& aJsonDOM
     rapidjson::Writer<rapidjson::StringBuffer>  writer(buffer);
     aJsonDOM.Accept(writer);
 
-    return std::u8string(GpUTF::S_STR_To_UTF8(std::string_view(buffer.GetString(), buffer.GetSize())));
+    return std::u8string(GpUTF::S_As_UTF8(std::string_view(buffer.GetString(), buffer.GetSize())));
 }
 
 void    GpJsonFromObject::SToString
