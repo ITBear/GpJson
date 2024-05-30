@@ -13,4 +13,4 @@ GP_ENUM(GP_JSON_API, GpJsonSerializerFlag,
 
 using GpJsonSerializerFlags = GpEnumFlagsST<GpJsonSerializerFlag>;
 
-}//namespace GPlatform
+}// namespace GPlatform

@@ -7,9 +7,12 @@
 #define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
 
 GP_WARNING_PUSH()
-GP_WARNING_DISABLE(switch-enum)
 
-#include <rapidjson/document.h>
+#if defined(GP_COMPILER_CLANG) || defined(GP_COMPILER_GCC)
+    GP_WARNING_DISABLE(switch-enum)
+#endif// #if defined(GP_COMPILER_CLANG) || defined(GP_COMPILER_GCC)
+
+#   include <rapidjson/document.h>
 
 GP_WARNING_POP()
 
@@ -23,12 +26,12 @@ public:
     using ParseResT = std::variant<rapidjson::Document::ConstObject, rapidjson::Document::ConstArray>;
 
 public:
-    static rapidjson::Document::ConstObject SParseJsonDom       (std::u8string_view     aJsonStr,
+    static rapidjson::Document::ConstObject SParseJsonDom       (std::string_view       aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
-    static rapidjson::Document::ConstArray  SParseJsonDomVec    (std::u8string_view     aJsonStr,
+    static rapidjson::Document::ConstArray  SParseJsonDomVec    (std::string_view       aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
 
-    static ParseResT                        SParseJsonDomInsitu (GpSpanPtrCharU8RW      aJsonStr,
+    static ParseResT                        SParseJsonDomInsitu (GpSpanCharRW           aJsonStr,
                                                                  rapidjson::Document&   aJsonDOM);
     static void                             SReadObject         (GpReflectObject&                           aObject,
                                                                  const rapidjson::Document::ConstObject&    aJsonObject,
@@ -44,7 +47,7 @@ private:
     static std::optional<GpUUID>            SFindModelUid       (const rapidjson::Document::ConstObject&    aJsonObject);
 
 private:
-    static const std::array<std::u8string_view, 18> sParseErrorCodes;
+    static const std::array<std::string_view, 18>   sParseErrorCodes;
 };
 
-}//namespace GPlatform
+}// namespace GPlatform

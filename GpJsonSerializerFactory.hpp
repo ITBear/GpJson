@@ -28,4 +28,4 @@ iFlags(aFlags)
 {
 }
 
-}//namespace GPlatform
+}// namespace GPlatform

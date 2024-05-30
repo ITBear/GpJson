@@ -36,7 +36,7 @@ double  JVisitor_SReadDouble (const rapidjson::Document::GenericValue& aJsonValu
         }
     } else
     {
-        THROW_GP(u8"Unsupported type"_sv);
+        THROW_GP("Unsupported type"_sv);
     }
 
     return res;
@@ -46,7 +46,8 @@ class JVisitor_VisitCtx
 {
 public:
                                             JVisitor_VisitCtx   (const rapidjson::Document::ConstObject&    aJsonObject,
-                                                                 const GpJsonSerializerFlags                aJsonSerializerFlags) noexcept;
+                                                                 const GpJsonSerializerFlags                aJsonSerializerFlags,
+                                                                 void*                                      aDataPtr) noexcept;
 
     [[nodiscard]] bool                      OnVisitBegin        (const GpReflectModel& aModel);
     void                                    OnVisitEnd          (const GpReflectModel& aModel);
@@ -54,15 +55,18 @@ public:
 public:
     const rapidjson::Document::ConstObject& iJsonObject;
     const GpJsonSerializerFlags             iJsonSerializerFlags;
+    void*                                   iDataPtr = nullptr;
 };
 
 JVisitor_VisitCtx::JVisitor_VisitCtx
 (
     const rapidjson::Document::ConstObject& aJsonObject,
-    const GpJsonSerializerFlags             aJsonSerializerFlags
+    const GpJsonSerializerFlags             aJsonSerializerFlags,
+    void*                                   aDataPtr
 ) noexcept:
-iJsonObject(aJsonObject),
-iJsonSerializerFlags(aJsonSerializerFlags)
+iJsonObject         (aJsonObject),
+iJsonSerializerFlags(aJsonSerializerFlags),
+iDataPtr            (aDataPtr)
 {
 }
 
@@ -79,68 +83,48 @@ void    JVisitor_VisitCtx::OnVisitEnd (const GpReflectModel& /*aModel*/)
 class JVisitor_VisitValueCtx
 {
 public:
-                        JVisitor_VisitValueCtx  (void) noexcept {}
+            JVisitor_VisitValueCtx  (void) noexcept {}
 
-    [[nodiscard]] bool  OnVisitBegin            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                OnVisitEnd              (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt8             (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt8             (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt16            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt16            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt32            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt32            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt64            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt64            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Double            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Float             (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Bool              (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UUID              (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_String            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_BLOB              (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Object            (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_ObjectSP          (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Enum              (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_EnumFlags         (void*                  aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
+    bool    OnVisitBegin            (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    OnVisitEnd              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Double                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Float                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Bool                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UUID                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    String                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    BLOB                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Object                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    ObjectSP                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Enum                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    EnumFlags               (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
 public:
     rapidjson::Document::ConstMemberIterator    iMit;
@@ -149,21 +133,20 @@ public:
 
 bool    JVisitor_VisitValueCtx::OnVisitBegin
 (
-    void*                   /*aDataPtr*/,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::u8string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
-                                  aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
+    std::string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
+                                aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
 
     //Find json member
     iMit = aCtx.iJsonObject.FindMember
     (
         rapidjson::Document::ValueType
         (
-            GpUTF::S_As_STR(propName).data(),
-            NumOps::SConvert<rapidjson::SizeType>(propName.size())
+            std::data(propName),
+            NumOps::SConvert<rapidjson::SizeType>(std::size(propName))
         )
     );
 
@@ -180,222 +163,206 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
 
 void    JVisitor_VisitValueCtx::OnVisitEnd
 (
-    void*                   /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
+    [[maybe_unused]] const GpReflectProp&   aProp,
+    [[maybe_unused]] JVisitor_VisitCtx&     aCtx
 )
 {
     //NOP
 }
 
-void    JVisitor_VisitValueCtx::Value_UInt8
+void    JVisitor_VisitValueCtx::UI8
 (
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_UInt8(aDataPtr) = NumOps::SConvert<u_int_8>(iMitVal->GetUint64());
-    } else
-    {
-        aProp.Value_UInt8(aDataPtr) = NumOps::SConvert<u_int_8>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt8
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_SInt8(aDataPtr) = NumOps::SConvert<s_int_8>(iMitVal->GetInt64());
-    } else
-    {
-        aProp.Value_SInt8(aDataPtr) = NumOps::SConvert<s_int_8>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_UInt16
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_UInt16(aDataPtr) = NumOps::SConvert<u_int_16>(iMitVal->GetUint64());
-    } else
-    {
-        aProp.Value_UInt16(aDataPtr) = NumOps::SConvert<u_int_16>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt16
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_SInt16(aDataPtr) = NumOps::SConvert<s_int_16>(iMitVal->GetInt64());
-    } else
-    {
-        aProp.Value_SInt16(aDataPtr) = NumOps::SConvert<s_int_16>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_UInt32
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_UInt32(aDataPtr) = NumOps::SConvert<u_int_32>(iMitVal->GetUint64());
-    } else
-    {
-        aProp.Value_UInt32(aDataPtr) = NumOps::SConvert<u_int_32>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt32
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_SInt32(aDataPtr) = NumOps::SConvert<s_int_32>(iMitVal->GetInt64());
-    } else
-    {
-        aProp.Value_SInt32(aDataPtr) = NumOps::SConvert<s_int_32>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_UInt64
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_UInt64(aDataPtr) = NumOps::SConvert<u_int_64>(iMitVal->GetUint64());
-    } else
-    {
-        aProp.Value_UInt64(aDataPtr) = NumOps::SConvert<u_int_64>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt64
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    if (iMitVal->IsNumber())
-    {
-        aProp.Value_SInt64(aDataPtr) = NumOps::SConvert<s_int_64>(iMitVal->GetInt64());
-    } else
-    {
-        aProp.Value_SInt64(aDataPtr) = NumOps::SConvert<s_int_64>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
-    }
-}
-
-void    JVisitor_VisitValueCtx::Value_Double
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    aProp.Value_Double(aDataPtr) = JVisitor_SReadDouble(*iMitVal);
-}
-
-void    JVisitor_VisitValueCtx::Value_Float
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    aProp.Value_Float(aDataPtr) = NumOps::SConvert<float>(JVisitor_SReadDouble(*iMitVal));
-}
-
-void    JVisitor_VisitValueCtx::Value_Bool
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    aProp.Value_Bool(aDataPtr) = iMitVal->GetBool();
-}
-
-void    JVisitor_VisitValueCtx::Value_UUID
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    aProp.Value_UUID(aDataPtr) = GpUUID::SFromString(_JsonValue2SV(iMitVal));
-}
-
-void    JVisitor_VisitValueCtx::Value_String
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    aProp.Value_String(aDataPtr) = std::u8string(_JsonValue2SV(iMitVal));
-}
-
-void    JVisitor_VisitValueCtx::Value_BLOB
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    aProp.Value_BLOB(aDataPtr) = GpBase64::SDecodeToByteArray(_JsonValue2SV(iMitVal));
-}
-
-void    JVisitor_VisitValueCtx::Value_Object
-(
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    GpReflectObject&                    object      = aProp.Value_Object(aDataPtr);
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_UI8(aCtx.iDataPtr) = NumOps::SConvert<u_int_8>(iMitVal->GetUint64());
+    } else
+    {
+        aProp.Value_UI8(aCtx.iDataPtr) = NumOps::SConvert<u_int_8>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::SI8
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_SI8(aCtx.iDataPtr) = NumOps::SConvert<s_int_8>(iMitVal->GetInt64());
+    } else
+    {
+        aProp.Value_SI8(aCtx.iDataPtr) = NumOps::SConvert<s_int_8>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::UI16
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_UI16(aCtx.iDataPtr) = NumOps::SConvert<u_int_16>(iMitVal->GetUint64());
+    } else
+    {
+        aProp.Value_UI16(aCtx.iDataPtr) = NumOps::SConvert<u_int_16>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::SI16
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_SI16(aCtx.iDataPtr) = NumOps::SConvert<s_int_16>(iMitVal->GetInt64());
+    } else
+    {
+        aProp.Value_SI16(aCtx.iDataPtr) = NumOps::SConvert<s_int_16>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::UI32
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_UI32(aCtx.iDataPtr) = NumOps::SConvert<u_int_32>(iMitVal->GetUint64());
+    } else
+    {
+        aProp.Value_UI32(aCtx.iDataPtr) = NumOps::SConvert<u_int_32>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::SI32
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_SI32(aCtx.iDataPtr) = NumOps::SConvert<s_int_32>(iMitVal->GetInt64());
+    } else
+    {
+        aProp.Value_SI32(aCtx.iDataPtr) = NumOps::SConvert<s_int_32>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::UI64
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_UI64(aCtx.iDataPtr) = NumOps::SConvert<u_int_64>(iMitVal->GetUint64());
+    } else
+    {
+        aProp.Value_UI64(aCtx.iDataPtr) = NumOps::SConvert<u_int_64>(StrOps::SToUI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::SI64
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    if (iMitVal->IsNumber())
+    {
+        aProp.Value_SI64(aCtx.iDataPtr) = NumOps::SConvert<s_int_64>(iMitVal->GetInt64());
+    } else
+    {
+        aProp.Value_SI64(aCtx.iDataPtr) = NumOps::SConvert<s_int_64>(StrOps::SToSI64(_JsonValue2SV(iMitVal)));
+    }
+}
+
+void    JVisitor_VisitValueCtx::Double
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    aProp.Value_Double(aCtx.iDataPtr) = JVisitor_SReadDouble(*iMitVal);
+}
+
+void    JVisitor_VisitValueCtx::Float
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    aProp.Value_Float(aCtx.iDataPtr) = NumOps::SConvert<float>(JVisitor_SReadDouble(*iMitVal));
+}
+
+void    JVisitor_VisitValueCtx::Bool
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    aProp.Value_Bool(aCtx.iDataPtr) = iMitVal->GetBool();
+}
+
+void    JVisitor_VisitValueCtx::UUID
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    aProp.Value_UUID(aCtx.iDataPtr) = GpUUID::SFromString(_JsonValue2SV(iMitVal));
+}
+
+void    JVisitor_VisitValueCtx::String
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    aProp.Value_String(aCtx.iDataPtr) = std::string(_JsonValue2SV(iMitVal));
+}
+
+void    JVisitor_VisitValueCtx::BLOB
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    aProp.Value_BLOB(aCtx.iDataPtr) = GpBase64::SDecodeToByteArray(_JsonValue2SV(iMitVal));
+}
+
+void    JVisitor_VisitValueCtx::Object
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    GpReflectObject&                    object      = aProp.Value_Object(aCtx.iDataPtr);
     rapidjson::Document::ConstObject    jsonObject  = iMitVal->GetObject();
     GpJsonToObject::SReadObject(object, jsonObject, aCtx.iJsonSerializerFlags);
 }
 
-void    JVisitor_VisitValueCtx::Value_ObjectSP
+void    JVisitor_VisitValueCtx::ObjectSP
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const GpReflectModel&               model       = GpReflectManager::S().Find(aProp.ModelUid());
+    GpReflectModel::CSP                 modelCSP    = GpReflectManager::S().Find(aProp.ModelUid());
+    const GpReflectModel&               model       = modelCSP.Vn();
     rapidjson::Document::ConstObject    jsonObject  = iMitVal->GetObject();
     const GpReflectModel&               modelJson   = GpJsonToObject::SCheckModel
     (
@@ -403,197 +370,162 @@ void    JVisitor_VisitValueCtx::Value_ObjectSP
         model
     );
 
-    GpReflectObject::SP&    objectBaseSP    = aProp.Value_ObjectSP(aDataPtr);
+    GpReflectObject::SP&    objectBaseSP    = aProp.Value_ObjectSP(aCtx.iDataPtr);
                             objectBaseSP    = modelJson.NewInstance();
     GpReflectObject&        objectBase      = objectBaseSP.Vn();
 
     GpJsonToObject::SReadObject(objectBase, jsonObject, aCtx.iJsonSerializerFlags);
 }
 
-void    JVisitor_VisitValueCtx::Value_Enum
+void    JVisitor_VisitValueCtx::Enum
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
-    aProp.Value_Enum(aDataPtr).FromString(_JsonValue2SV(iMitVal));
+    aProp.Value_Enum(aCtx.iDataPtr).FromString(_JsonValue2SV(iMitVal));
 }
 
-void    JVisitor_VisitValueCtx::Value_EnumFlags
+void    JVisitor_VisitValueCtx::EnumFlags
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray array       = iMitVal->GetArray();
-    GpEnumFlags&                    enumFlags   = aProp.Value_EnumFlags(aDataPtr);
+    GpEnumFlags&                    enumFlags   = aProp.Value_EnumFlags(aCtx.iDataPtr);
 
     for (const auto& v: array)
     {
-        enumFlags.Set(_JsonValue2SV(v));
+        enumFlags.Combine(_JsonValue2SV(v));
     }
 }
 
-//------------------------------------- JVisitor_VisitContainerCtx ------------------------------------------
-class JVisitor_VisitContainerCtx
+//------------------------------------- JVisitor_VisitVecCtx ------------------------------------------
+class JVisitor_VisitVecCtx
 {
 public:
-                        JVisitor_VisitContainerCtx  (void) noexcept {}
+            JVisitor_VisitVecCtx    (void) noexcept {}
 
-    [[nodiscard]] bool  OnVisitBegin                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-    void                OnVisitEnd                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    bool    OnVisitBegin            (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    OnVisitEnd              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt8                 (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt8                 (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt16                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt16                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt32                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt32                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt64                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt64                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Double                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Double                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Float                 (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Float                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Bool                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UUID                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UUID                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    String                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_String                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    BLOB                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_BLOB                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Object                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Object                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename ValGetterT>
-    void                Value_ObjectSP              (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename ValGetterT>
-    void                Value_Enum                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename ValGetterT>
-    void                Value_EnumFlags             (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    ObjectSP                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
 private:
     template<typename T>
-    static void         SClear                      (std::array<T, 0>&) {}
+    static void         SClear      (std::array<T, 0>&) {}
 
     template<typename T>
-    static void         SClear                      (std::vector<T>& aVector) {aVector.clear();}
+    static void         SClear      (std::vector<T>& aVector) {aVector.clear();}
 
-    static void         SClear                      (GpVectorReflectObjWrapBase& aVector) {aVector.clear();}
-
-    template<typename T>
-    static void         SReserve                    (std::array<T, 0>&,
-                                                     const size_t) {}
+    static void         SClear      (GpVectorReflectObjWrapBase& aVector) {aVector.clear();}
 
     template<typename T>
-    static void         SReserve                    (std::vector<T>&    aVector,
-                                                     const size_t       aSize) {aVector.reserve(aSize);}
+    static void         SReserve    (std::array<T, 0>&,
+                                     const size_t) {}
 
-    static void         SReserve                    (GpVectorReflectObjWrapBase&    aVector,
-                                                     const size_t                   aSize) {aVector.reserve(aSize);}
+    template<typename T>
+    static void         SReserve    (std::vector<T>&    aVector,
+                                     const size_t       aSize) {aVector.reserve(aSize);}
+
+    static void         SReserve    (GpVectorReflectObjWrapBase&    aVector,
+                                     const size_t                   aSize) {aVector.reserve(aSize);}
 
     template<typename T,
              typename... Ts>
-    void                SEmplaceBack                (std::array<T, 0>&,
-                                                     Ts&&...) {}
+    void                SEmplaceBack(std::array<T, 0>&,
+                                     Ts&&...) {}
 
     template<typename T,
              typename... Ts>
-    void                SEmplaceBack                (std::vector<T>&    aVector,
-                                                     Ts&&...            aArgs) {aVector.emplace_back(std::forward<Ts>(aArgs)...);}
+    void                SEmplaceBack(std::vector<T>&    aVector,
+                                     Ts&&...            aArgs) {aVector.emplace_back(std::forward<Ts>(aArgs)...);}
 
-    void                SEmplaceBack                (GpVectorReflectObjWrapBase&    aVector,
-                                                     GpReflectObject&&              aValue) {aVector.emplace_back(std::move(aValue));}
+    void                SEmplaceBack(GpVectorReflectObjWrapBase&    aVector,
+                                     GpReflectObject&&              aValue) {aVector.emplace_back(std::move(aValue));}
 
 public:
     rapidjson::Document::ConstMemberIterator    iMit;
     const rapidjson::Document::GenericValue*    iMitVal = nullptr;
 };
 
-bool    JVisitor_VisitContainerCtx::OnVisitBegin
+bool    JVisitor_VisitVecCtx::OnVisitBegin
 (
-    void*                   /*aDataPtr*/,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::u8string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
-                                  aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
+    std::string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
+                                aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
 
     //Find json member
     iMit = aCtx.iJsonObject.FindMember
     (
         rapidjson::Document::ValueType
         (
-            GpUTF::S_As_STR(propName).data(),
-            NumOps::SConvert<rapidjson::SizeType>(propName.size())
+            std::data(propName),
+            NumOps::SConvert<rapidjson::SizeType>(std::size(propName))
         )
     );
 
@@ -608,33 +540,31 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     THROW_COND_GP
     (
         iMitVal->IsArray(),
-        [&](){return u8"Json value '"_sv + propName + u8"' must be array"_sv;}
+        [&](){return "Json value '"_sv + propName + "' must be array"_sv;}
     );
 
     return true;
 }
 
-void    JVisitor_VisitContainerCtx::OnVisitEnd
+void    JVisitor_VisitVecCtx::OnVisitEnd
 (
-    void*                   /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
+    [[maybe_unused]] const GpReflectProp&   aProp,
+    [[maybe_unused]] JVisitor_VisitCtx&     aCtx
 )
 {
     //NOP
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt8
+void    JVisitor_VisitVecCtx::UI8
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::UInt8(aDataPtr, aProp);
+    auto& container = ValGetterT::UI8(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -645,16 +575,15 @@ void    JVisitor_VisitContainerCtx::Value_UInt8
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt8
+void    JVisitor_VisitVecCtx::SI8
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::SInt8(aDataPtr, aProp);
+    auto& container = ValGetterT::SI8(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -665,16 +594,15 @@ void    JVisitor_VisitContainerCtx::Value_SInt8
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt16
+void    JVisitor_VisitVecCtx::UI16
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::UInt16(aDataPtr, aProp);
+    auto& container = ValGetterT::UI16(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -685,16 +613,15 @@ void    JVisitor_VisitContainerCtx::Value_UInt16
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt16
+void    JVisitor_VisitVecCtx::SI16
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::SInt16(aDataPtr, aProp);
+    auto& container = ValGetterT::SI16(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -705,16 +632,15 @@ void    JVisitor_VisitContainerCtx::Value_SInt16
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt32
+void    JVisitor_VisitVecCtx::UI32
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::UInt32(aDataPtr, aProp);
+    auto& container = ValGetterT::UI32(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -725,16 +651,15 @@ void    JVisitor_VisitContainerCtx::Value_UInt32
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt32
+void    JVisitor_VisitVecCtx::SI32
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::SInt32(aDataPtr, aProp);
+    auto& container = ValGetterT::SI32(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -745,16 +670,15 @@ void    JVisitor_VisitContainerCtx::Value_SInt32
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt64
+void    JVisitor_VisitVecCtx::UI64
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::UInt64(aDataPtr, aProp);
+    auto& container = ValGetterT::UI64(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -765,16 +689,15 @@ void    JVisitor_VisitContainerCtx::Value_UInt64
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt64
+void    JVisitor_VisitVecCtx::SI64
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::SInt64(aDataPtr, aProp);
+    auto& container = ValGetterT::SI64(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -785,16 +708,15 @@ void    JVisitor_VisitContainerCtx::Value_SInt64
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Double
+void    JVisitor_VisitVecCtx::Double
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::Double(aDataPtr, aProp);
+    auto& container = ValGetterT::Double(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -805,16 +727,15 @@ void    JVisitor_VisitContainerCtx::Value_Double
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Float
+void    JVisitor_VisitVecCtx::Float
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::Float(aDataPtr, aProp);
+    auto& container = ValGetterT::Float(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -825,36 +746,15 @@ void    JVisitor_VisitContainerCtx::Value_Float
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Bool
+void    JVisitor_VisitVecCtx::UUID
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::Bool(aDataPtr, aProp);
-    SClear(container);
-    SReserve(container, jArray.Size());
-
-    for (const auto& v: jArray)
-    {
-        SEmplaceBack(container, v.GetBool());
-    }
-}
-
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UUID
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
-
-    auto& container = ValGetterT::UUID(aDataPtr, aProp);
+    auto& container = ValGetterT::UUID(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -865,36 +765,34 @@ void    JVisitor_VisitContainerCtx::Value_UUID
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_String
+void    JVisitor_VisitVecCtx::String
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::String(aDataPtr, aProp);
+    auto& container = ValGetterT::String(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
     for (const auto& v: jArray)
     {
-        SEmplaceBack(container, std::u8string(_JsonValue2SV(v)));
+        SEmplaceBack(container, std::string(_JsonValue2SV(v)));
     }
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_BLOB
+void    JVisitor_VisitVecCtx::BLOB
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::BLOB(aDataPtr, aProp);
+    auto& container = ValGetterT::BLOB(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
@@ -905,20 +803,20 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Object
+void    JVisitor_VisitVecCtx::Object
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::Object(aDataPtr, aProp);
+    auto& container = ValGetterT::Object(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
-    const GpReflectModel& model = GpReflectManager::S().Find(aProp.ModelUid());
+    GpReflectModel::CSP     modelCSP    = GpReflectManager::S().Find(aProp.ModelUid());
+    const GpReflectModel&   model       = modelCSP.Vn();
 
     for (const auto& v: jArray)
     {
@@ -944,20 +842,20 @@ void    JVisitor_VisitContainerCtx::Value_Object
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_ObjectSP
+void    JVisitor_VisitVecCtx::ObjectSP
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstArray jArray = iMitVal->GetArray();
 
-    auto& container = ValGetterT::ObjectSP(aDataPtr, aProp);
+    auto& container = ValGetterT::ObjectSP(aCtx.iDataPtr, aProp);
     SClear(container);
     SReserve(container, jArray.Size());
 
-    const GpReflectModel& model = GpReflectManager::S().Find(aProp.ModelUid());
+    GpReflectModel::CSP     modelCSP    = GpReflectManager::S().Find(aProp.ModelUid());
+    const GpReflectModel&   model       = modelCSP.Vn();
 
     for (const auto& v: jArray)
     {
@@ -976,145 +874,100 @@ void    JVisitor_VisitContainerCtx::Value_ObjectSP
     }
 }
 
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Enum
-(
-    void*                   /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    THROW_GP(u8"Enum arrays are not supported."_sv);
-}
-
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_EnumFlags
-(
-    void*                   /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    THROW_GP(u8"Enum flag arrays are not supported."_sv);
-}
-
 //------------------------------------- JVisitor_VisitMapCtx ------------------------------------------
 class JVisitor_VisitMapCtx
 {
 public:
-                        JVisitor_VisitMapCtx        (void) noexcept {}
+            JVisitor_VisitMapCtx    (void) noexcept {}
 
-    [[nodiscard]] bool  OnVisitBegin                (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-    void                OnVisitEnd                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    bool    OnVisitBegin            (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    OnVisitEnd              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt8                     (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI8                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt8                     (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI8                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt16                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI16                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt16                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI16                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt32                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI32                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt32                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI32                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt64                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI64                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt64                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI64                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_Double                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_Double                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_Float                     (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_Float                 (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_Bool                      (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UUID                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UUID                      (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_String                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_String                    (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_BLOB                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_BLOB                      (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename                       KeyT,
-             typename                       ValT,
-             template<typename...> class    ValGetterT>
-    void                K_ObjectSP                  (void*                  aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_ObjectSP              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
 private:
     template<typename T>
-    T                   ProcessMapKey               (std::u8string_view aValue);
+    T       ProcessMapKey           (std::string_view aValue);
 
 public:
     rapidjson::Document::ConstMemberIterator    iMit;
@@ -1123,21 +976,20 @@ public:
 
 bool    JVisitor_VisitMapCtx::OnVisitBegin
 (
-    void*                   /*aDataPtr*/,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::u8string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
-                                  aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
+    std::string_view propName = aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE) ?
+                                aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value() : aProp.Name();
 
     //Find json member
     iMit = aCtx.iJsonObject.FindMember
     (
         rapidjson::Document::ValueType
         (
-            GpUTF::S_As_STR(propName).data(),
-            NumOps::SConvert<rapidjson::SizeType>(propName.size())
+            std::data(propName),
+            NumOps::SConvert<rapidjson::SizeType>(std::size(propName))
         )
     );
 
@@ -1152,7 +1004,7 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
     THROW_COND_GP
     (
         iMitVal->IsObject(),
-        [&](){return u8"Json value '"_sv + propName + u8"' must be object"_sv;}
+        [&](){return "Json value '"_sv + propName + "' must be object"_sv;}
     );
 
     return true;
@@ -1160,9 +1012,8 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
 
 void    JVisitor_VisitMapCtx::OnVisitEnd
 (
-    void*                   /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
+    [[maybe_unused]] const GpReflectProp&   aProp,
+    [[maybe_unused]] JVisitor_VisitCtx&     aCtx
 )
 {
     //NOP
@@ -1171,20 +1022,17 @@ void    JVisitor_VisitMapCtx::OnVisitEnd
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt8
+void    JVisitor_VisitMapCtx::K_UI8
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::UInt8(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::UI8(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1196,20 +1044,17 @@ void    JVisitor_VisitMapCtx::K_UInt8
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt8
+void    JVisitor_VisitMapCtx::K_SI8
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::SInt8(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::SI8(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1221,20 +1066,17 @@ void    JVisitor_VisitMapCtx::K_SInt8
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt16
+void    JVisitor_VisitMapCtx::K_UI16
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::UInt16(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::UI16(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1246,20 +1088,17 @@ void    JVisitor_VisitMapCtx::K_UInt16
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt16
+void    JVisitor_VisitMapCtx::K_SI16
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::SInt16(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::SI16(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1271,20 +1110,17 @@ void    JVisitor_VisitMapCtx::K_SInt16
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt32
+void    JVisitor_VisitMapCtx::K_UI32
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::UInt32(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::UI32(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1296,20 +1132,17 @@ void    JVisitor_VisitMapCtx::K_UInt32
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt32
+void    JVisitor_VisitMapCtx::K_SI32
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::SInt32(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::SI32(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1321,20 +1154,17 @@ void    JVisitor_VisitMapCtx::K_SInt32
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt64
+void    JVisitor_VisitMapCtx::K_UI64
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::UInt64(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::UI64(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1346,20 +1176,17 @@ void    JVisitor_VisitMapCtx::K_UInt64
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt64
+void    JVisitor_VisitMapCtx::K_SI64
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::SInt64(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::SI64(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1373,19 +1200,15 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_Double
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::Double(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::Double(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
-
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1399,19 +1222,15 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_Float
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::Float(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::Float(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
-
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1423,45 +1242,17 @@ void    JVisitor_VisitMapCtx::K_Float
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_Bool
-(
-    void*                   aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::Bool(aDataPtr, aProp);
-
-    for (const auto& v: jObj)
-    {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
-        container.try_emplace
-        (
-            ProcessMapKey<KeyT>(_JsonValue2SV(name)),
-            value.GetBool()
-        );
-    }
-}
-
-template<typename                       KeyT,
-         typename                       ValT,
-         template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_UUID
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::UUID(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::UUID(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
@@ -1475,20 +1266,16 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_String
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::String(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::String(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
-
-        std::u8string s(_JsonValue2SV(value));
+        std::string s(_JsonValue2SV(value));
 
         container.try_emplace
         (
@@ -1503,19 +1290,15 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_BLOB
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
+    JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::BLOB(aDataPtr, aProp);
+    auto&                               container   = ValGetterT<KeyT>::BLOB(aCtx.iDataPtr, aProp);
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
-
         GpBytesArray data = GpBase64::SDecodeToByteArray(_JsonValue2SV(value));
 
         container.try_emplace
@@ -1531,20 +1314,17 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_ObjectSP
 (
-    void*                   aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
     rapidjson::Document::ConstObject    jObj        = iMitVal->GetObject();
-    auto&                               container   = ValGetterT<KeyT>::ObjectSP(aDataPtr, aProp);
-    const GpReflectModel&               model       = GpReflectManager::S().Find(aProp.ModelUid());
+    auto&                               container   = ValGetterT<KeyT>::ObjectSP(aCtx.iDataPtr, aProp);
+    GpReflectModel::CSP                 modelCSP    = GpReflectManager::S().Find(aProp.ModelUid());
+    const GpReflectModel&               model       = modelCSP.Vn();
 
-    for (const auto& v: jObj)
+    for (const auto& [name, value]: jObj)
     {
-        const auto& name    = v.name;
-        const auto& value   = v.value;
-
         const rapidjson::Document::ConstObject& jsonObject  = value.GetObject();
         const GpReflectModel&                   modelJson   = GpJsonToObject::SCheckModel
         (
@@ -1565,7 +1345,7 @@ void    JVisitor_VisitMapCtx::K_ObjectSP
 }
 
 template<typename T>
-T   JVisitor_VisitMapCtx::ProcessMapKey (std::u8string_view aValue)
+T   JVisitor_VisitMapCtx::ProcessMapKey (std::string_view aValue)
 {
     constexpr const GpReflectType::EnumT type = GpReflectUtils::SDetectType<T>();
 
@@ -1601,31 +1381,31 @@ T   JVisitor_VisitMapCtx::ProcessMapKey (std::u8string_view aValue)
         return NumOps::SConvert<float>(StrOps::SToDouble(aValue));
     } else if constexpr (type == GpReflectType::BOOLEAN)
     {
-        GpThrowCe<GpException>(u8"Booleans are not supported as map key");
+        GpThrowCe<GpException>("Booleans are not supported as map key");
     } else if constexpr (type == GpReflectType::UUID)
     {
         return GpUUID::SFromString(aValue);
     } else if constexpr (type == GpReflectType::STRING)
     {
-        return std::u8string(aValue);
+        return std::string(aValue);
     } else if constexpr (type == GpReflectType::BLOB)
     {
         return GpBase64::SDecodeToByteArray(aValue);/*StrOps::SToBytes(aValue);*/
     } else if constexpr (type == GpReflectType::OBJECT)
     {
-        GpThrowCe<GpException>(u8"Objects are not supported as a map key");
+        GpThrowCe<GpException>("Objects are not supported as a map key");
     } else if constexpr (type == GpReflectType::OBJECT_SP)
     {
-        GpThrowCe<GpException>(u8"Objects SP are not supported as a map key");
+        GpThrowCe<GpException>("Objects SP are not supported as a map key");
     } else if constexpr (type == GpReflectType::ENUM)
     {
-        GpThrowCe<GpException>(u8"Enums are not supported as a map key");
+        GpThrowCe<GpException>("Enums are not supported as a map key");
     } else if constexpr (type == GpReflectType::ENUM_FLAGS)
     {
-        GpThrowCe<GpException>(u8"Enum flags are not supported as a map key");
+        GpThrowCe<GpException>("Enum flags are not supported as a map key");
     } else
     {
-        GpThrowCe<GpException>(u8"Unknown type '"_sv + GpReflectUtils::SModelName<T>() + u8"'");
+        GpThrowCe<GpException>("Unknown type '"_sv + GpReflectUtils::SModelName<T>() + "'");
     }
 }
 
@@ -1636,39 +1416,39 @@ class JVisitor
 public:
     using VisitCtx          = JVisitor_VisitCtx;
     using VisitValueCtx     = JVisitor_VisitValueCtx;
-    using VisitContainerCtx = JVisitor_VisitContainerCtx;
+    using VisitVecCtx   = JVisitor_VisitVecCtx;
     using VisitMapCtx       = JVisitor_VisitMapCtx;
 };
 
-}//namespace ObjectVisitor_JsonToObject
+}// namespace ObjectVisitor_JsonToObject
 
 //-------------------------------------------------------------------------------
 
-const std::array<std::u8string_view, 18>    GpJsonToObject::sParseErrorCodes =
+const std::array<std::string_view, 18>  GpJsonToObject::sParseErrorCodes =
 {
-    u8"No error"_sv                                         , //kParseErrorNone = 0,
-    u8"The document is empty"_sv                            , //kParseErrorDocumentEmpty,
-    u8"The document root must not follow by other values"_sv, //kParseErrorDocumentRootNotSingular,
-    u8"Invalid value"_sv                                    , //kParseErrorValueInvalid,
-    u8"Missing a name for object member"_sv                 , //kParseErrorObjectMissName,
-    u8"Missing a colon after a name of object member"_sv    , //kParseErrorObjectMissColon,
-    u8"Missing a comma or '}' after an object member"_sv    , //kParseErrorObjectMissCommaOrCurlyBracket,
-    u8"Missing a comma or ']' after an array element"_sv    , //kParseErrorArrayMissCommaOrSquareBracket,
-    u8"Incorrect hex digit after \\u escape in string"_sv   , //kParseErrorStringUnicodeEscapeInvalidHex,
-    u8"The surrogate pair in string is invalid"_sv          , //kParseErrorStringUnicodeSurrogateInvalid,
-    u8"Invalid escape character in string"_sv               , //kParseErrorStringEscapeInvalid,
-    u8"Missing a closing quotation mark in string"_sv       , //kParseErrorStringMissQuotationMark,
-    u8"Invalid encoding in string"_sv                       , //kParseErrorStringInvalidEncoding,
-    u8"Number too big to be stored in double"_sv            , //kParseErrorNumberTooBig,
-    u8"Miss fraction part in number"_sv                     , //kParseErrorNumberMissFraction,
-    u8"Miss exponent in number"_sv                          , //kParseErrorNumberMissExponent,
-    u8"Parsing was terminated"_sv                           , //kParseErrorTermination,
-    u8"Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
+    "No error"_sv                                         , //kParseErrorNone = 0,
+    "The document is empty"_sv                            , //kParseErrorDocumentEmpty,
+    "The document root must not follow by other values"_sv, //kParseErrorDocumentRootNotSingular,
+    "Invalid value"_sv                                    , //kParseErrorValueInvalid,
+    "Missing a name for object member"_sv                 , //kParseErrorObjectMissName,
+    "Missing a colon after a name of object member"_sv    , //kParseErrorObjectMissColon,
+    "Missing a comma or '}' after an object member"_sv    , //kParseErrorObjectMissCommaOrCurlyBracket,
+    "Missing a comma or ']' after an array element"_sv    , //kParseErrorArrayMissCommaOrSquareBracket,
+    "Incorrect hex digit after \\u escape in string"_sv   , //kParseErrorStringUnicodeEscapeInvalidHex,
+    "The surrogate pair in string is invalid"_sv          , //kParseErrorStringUnicodeSurrogateInvalid,
+    "Invalid escape character in string"_sv               , //kParseErrorStringEscapeInvalid,
+    "Missing a closing quotation mark in string"_sv       , //kParseErrorStringMissQuotationMark,
+    "Invalid encoding in string"_sv                       , //kParseErrorStringInvalidEncoding,
+    "Number too big to be stored in double"_sv            , //kParseErrorNumberTooBig,
+    "Miss fraction part in number"_sv                     , //kParseErrorNumberMissFraction,
+    "Miss exponent in number"_sv                          , //kParseErrorNumberMissExponent,
+    "Parsing was terminated"_sv                           , //kParseErrorTermination,
+    "Unspecific syntax error"_sv                            //kParseErrorUnspecificSyntaxError
 };
 
 rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
 (
-    std::u8string_view      aJsonStr,
+    std::string_view        aJsonStr,
     rapidjson::Document&    aJsonDOM
 )
 {
@@ -1679,11 +1459,11 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
     );
 
     //Check for errors
-    std::string_view jsonStr = GpUTF::S_As_STR(aJsonStr);
-    if (aJsonDOM.Parse(jsonStr.data(), jsonStr.size()).HasParseError())
+    std::string_view jsonStr = aJsonStr;
+    if (aJsonDOM.Parse(std::data(jsonStr), std::size(jsonStr)).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP(u8"JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
+        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     //Check for root element is object
@@ -1698,7 +1478,7 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
 
 rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
 (
-    std::u8string_view      aJsonStr,
+    std::string_view        aJsonStr,
     rapidjson::Document&    aJsonDOM
 )
 {
@@ -1709,11 +1489,11 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
     );
 
     //Check for errors
-    std::string_view jsonStr = GpUTF::S_As_STR(aJsonStr);
-    if (aJsonDOM.Parse(jsonStr.data(), jsonStr.size()).HasParseError())
+    std::string_view jsonStr = aJsonStr;
+    if (aJsonDOM.Parse(std::data(jsonStr), std::size(jsonStr)).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP(u8"JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
+        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     //Check for root element is object
@@ -1728,13 +1508,13 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
 
 GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
 (
-    GpSpanPtrCharU8RW       aJsonStr,
+    GpSpanCharRW            aJsonStr,
     rapidjson::Document&    aJsonDOM
 )
 {
     THROW_COND_GP
     (
-        !aJsonStr.IsEmpty(),
+        !aJsonStr.Empty(),
         "Json data is null"_sv
     );
 
@@ -1742,7 +1522,7 @@ GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
     if (aJsonDOM.ParseInsitu(reinterpret_cast<char*>(aJsonStr.Ptr())).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP(u8"JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
+        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     if (aJsonDOM.IsObject())
@@ -1753,7 +1533,7 @@ GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
         return const_cast<const rapidjson::Document&>(aJsonDOM).GetArray();
     } else
     {
-        THROW_GP(u8"Json root element must be object or array"_sv);
+        THROW_GP("Json root element must be object or array"_sv);
     }
 }
 
@@ -1764,11 +1544,13 @@ void    GpJsonToObject::SReadObject
     const GpJsonSerializerFlags             aJsonSerializerFlags
 )
 {
-    GpReflectVisitor<GpReflectObject, ObjectVisitor_JsonToObject::JVisitor> visitor;
-    ObjectVisitor_JsonToObject::JVisitor_VisitCtx ctx(aJsonObject, aJsonSerializerFlags);
+    GpReflectVisitor<ObjectVisitor_JsonToObject::JVisitor>  visitor;
+    ObjectVisitor_JsonToObject::JVisitor_VisitCtx           ctx(aJsonObject, aJsonSerializerFlags, aObject.ReflectDataPtr());
 
-    const GpReflectModel& model= aObject.ReflectModel();
-    visitor.Visit(model, aObject.ReflectDataPtr(), ctx);
+    GpReflectModel::CSP     modelCSP    = aObject.ReflectModel();
+    const GpReflectModel&   model       = modelCSP.Vn();
+
+    visitor.Visit(model, ctx);
 }
 
 const GpReflectModel&   GpJsonToObject::SCheckModel
@@ -1785,7 +1567,8 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
     }
 
     const GpUUID            modelUidJson    = modelUidJsonOpt.value();
-    const GpReflectModel&   modelJson       = GpReflectManager::S().Find(modelUidJson);
+    GpReflectModel::CSP     modelJsonCSP    = GpReflectManager::S().Find(modelUidJson);
+    const GpReflectModel&   modelJson       = modelJsonCSP.Vn();
 
     const GpUUID modelUidBase = aModel.Uid();
 
@@ -1802,8 +1585,12 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
 
     THROW_GP
     (
-        u8"Model in json must be derived from model in code. But code model UID "_sv + modelUidBase
-        + u8" and json model UID "_sv + modelUidJson
+        fmt::format
+        (
+            "Model in json must be derived from model in code. But code model UID '{}' and json model UID '{}'",
+            modelUidBase,
+            modelUidJson
+        )
     );
 }
 
@@ -1821,7 +1608,8 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
     }
 
     const GpUUID            modelUidJson    = modelUidJsonOpt.value();
-    const GpReflectModel&   modelJson       = GpReflectManager::S().Find(modelUidJson);
+    GpReflectModel::CSP     modelJsonCSP    = GpReflectManager::S().Find(modelUidJson);
+    const GpReflectModel&   modelJson       = modelJsonCSP.Vn();
     GpUUID                  modelUidBase;
 
     for (const GpReflectModel* modelVariant: aModelVariants)
@@ -1842,8 +1630,12 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
 
     THROW_GP
     (
-        u8"Model in json must be derived from model in code. But code model UID "_sv + modelUidBase
-        + u8" and json model UID "_sv + modelUidJson
+        fmt::format
+        (
+            "Model in json must be derived from model in code. But code model UID '{}' and json model UID '{}'",
+            modelUidBase,
+            modelUidJson
+        )
     );
 }
 
@@ -1856,7 +1648,8 @@ GpReflectModel::C::Opt::CRef    GpJsonToObject::SFindModel (const rapidjson::Doc
         return std::nullopt;
     }
 
-    const GpReflectModel& modelJson = GpReflectManager::S().Find(modelUidJsonOpt.value());
+    GpReflectModel::CSP     modelJsonCSP    = GpReflectManager::S().Find(modelUidJsonOpt.value());
+    const GpReflectModel&   modelJson       = modelJsonCSP.Vn();
     return modelJson;
 }
 
@@ -1870,11 +1663,10 @@ std::optional<GpUUID>   GpJsonToObject::SFindModelUid (const rapidjson::Document
         return std::nullopt;
     }
 
-    const auto& mitUidVal = mit->value;
-
-    const GpUUID modelUid = GpUUID::SFromString(_JsonValue2SV(mitUidVal));
+    const auto&     mitUidVal   = mit->value;
+    const GpUUID    modelUid    = GpUUID::SFromString(_JsonValue2SV(mitUidVal));
 
     return modelUid;
 }
 
-}//namespace GPlatform
+}// namespace GPlatform

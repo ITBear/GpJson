@@ -6,12 +6,12 @@
 
 namespace GPlatform {
 
-std::u8string   GpJsonFromXml::SJsonFromXml (std::u8string_view /*aXML*/)
+std::string GpJsonFromXml::SJsonFromXml (std::string_view /*aXML*/)
 {
     //TODO: implement
     THROW_GP_NOT_IMPLEMENTED();
 }
 
-}//namespace GPlatform
+}// namespace GPlatform
 
-#endif//#if defined(GP_USE_JSON_FROM_XML)
+#endif// #if defined(GP_USE_JSON_FROM_XML)

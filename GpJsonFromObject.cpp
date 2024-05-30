@@ -20,7 +20,8 @@ public:
                                         JVisitor_VisitCtx   (rapidjson::Document::GenericValue&     aJsonObject,
                                                              rapidjson::Document::AllocatorType&    aJsonAllocator,
                                                              const GpJsonSerializerFlags            aJsonSerializerFlags,
-                                                             const bool                             aIsAsTuple) noexcept;
+                                                             const bool                             aIsAsTuple,
+                                                             const void*                            aDataPtr) noexcept;
 
     [[nodiscard]] bool                  OnVisitBegin        (const GpReflectModel& aModel);
     void                                OnVisitEnd          (const GpReflectModel& aModel);
@@ -29,7 +30,8 @@ public:
     rapidjson::Document::GenericValue&  iJsonObject;
     rapidjson::Document::AllocatorType& iJsonAllocator;
     const GpJsonSerializerFlags         iJsonSerializerFlags;
-    const bool                          iIsAsTuple = false;
+    const bool                          iIsAsTuple  = false;
+    const void*                         iDataPtr    = nullptr;
 };
 
 JVisitor_VisitCtx::JVisitor_VisitCtx
@@ -37,12 +39,14 @@ JVisitor_VisitCtx::JVisitor_VisitCtx
     rapidjson::Document::GenericValue&  aJsonObject,
     rapidjson::Document::AllocatorType& aJsonAllocator,
     const GpJsonSerializerFlags         aJsonSerializerFlags,
-    const bool                          aIsAsTuple
+    const bool                          aIsAsTuple,
+    const void*                         aDataPtr
 ) noexcept:
-iJsonObject(aJsonObject),
-iJsonAllocator(aJsonAllocator),
+iJsonObject         (aJsonObject),
+iJsonAllocator      (aJsonAllocator),
 iJsonSerializerFlags(aJsonSerializerFlags),
-iIsAsTuple(aIsAsTuple)
+iIsAsTuple          (aIsAsTuple),
+iDataPtr            (aDataPtr)
 {
 }
 
@@ -56,10 +60,10 @@ bool    JVisitor_VisitCtx::OnVisitBegin (const GpReflectModel& aModel)
 
             name.SetString("@", iJsonAllocator);
 
-            const std::u8string modelUidStr = aModel.Uid().ToString();
+            const std::string modelUidStr = aModel.Uid().ToString();
 
             _JsonSetStr(obj, modelUidStr, iJsonAllocator);
-            //obj.SetString(modelUidStr.data(), NumOps::SConvert<rapidjson::SizeType>(modelUidStr.length()), iJsonAllocator);
+            //obj.SetString(std::data(modelUidStr), NumOps::SConvert<rapidjson::SizeType>(modelUidStr.length()), iJsonAllocator);
 
             iJsonObject.AddMember(name.Move(), obj.Move(), iJsonAllocator);
         }
@@ -76,68 +80,48 @@ void    JVisitor_VisitCtx::OnVisitEnd (const GpReflectModel& /*aModel*/)
 class JVisitor_VisitValueCtx
 {
 public:
-                        JVisitor_VisitValueCtx  (void) noexcept {}
+            JVisitor_VisitValueCtx  (void) noexcept {}
 
-    [[nodiscard]] bool  OnVisitBegin            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                OnVisitEnd              (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt8             (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt8             (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt16            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt16            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt32            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt32            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UInt64            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_SInt64            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Double            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Float             (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Bool              (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_UUID              (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_String            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_BLOB              (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Object            (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_ObjectSP          (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_Enum              (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
-    void                Value_EnumFlags         (const void*            aDataPtr,
-                                                 const GpReflectProp&   aProp,
-                                                 JVisitor_VisitCtx&     aCtx);
+    bool    OnVisitBegin            (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    OnVisitEnd              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    SI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Double                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Float                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Bool                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    UUID                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    String                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    BLOB                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Object                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    ObjectSP                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    Enum                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    EnumFlags               (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
 public:
     rapidjson::Value    iJsonMemberName;
@@ -146,7 +130,6 @@ public:
 
 bool    JVisitor_VisitValueCtx::OnVisitBegin
 (
-    const void*             /*aDataPtr*/,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
@@ -155,13 +138,13 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
     {
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
-            std::u8string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            //iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
+            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
-            std::u8string_view propName = aProp.Name();
-            //iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            std::string_view propName = aProp.Name();
+            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
@@ -171,9 +154,8 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
 
 void    JVisitor_VisitValueCtx::OnVisitEnd
 (
-    const void*             /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      aCtx
+    [[maybe_unused]] const GpReflectProp&   aProp,
+    JVisitor_VisitCtx&                      aCtx
 )
 {
     if (aCtx.iIsAsTuple)
@@ -185,175 +167,156 @@ void    JVisitor_VisitValueCtx::OnVisitEnd
     }
 }
 
-void    JVisitor_VisitValueCtx::Value_UInt8
+void    JVisitor_VisitValueCtx::UI8
 (
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetUint64(aProp.Value_UInt8(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt8
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetInt64(aProp.Value_SInt8(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_UInt16
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetUint64(aProp.Value_UInt16(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt16
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetInt64(aProp.Value_SInt16(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_UInt32
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetUint64(aProp.Value_UInt32(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt32
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetInt64(aProp.Value_SInt32(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_UInt64
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetUint64(aProp.Value_UInt64(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_SInt64
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetInt64(aProp.Value_SInt64(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_Double
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetDouble(aProp.Value_Double(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_Float
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetDouble(static_cast<double>(aProp.Value_Float(aDataPtr)));
-}
-
-void    JVisitor_VisitValueCtx::Value_Bool
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    iJsonMemberValue.SetBool(aProp.Value_Bool(aDataPtr));
-}
-
-void    JVisitor_VisitValueCtx::Value_UUID
-(
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const std::u8string propVal = aProp.Value_UUID(aDataPtr).ToString();
-    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    iJsonMemberValue.SetUint64(aProp.Value_UI8(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::SI8
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetInt64(aProp.Value_SI8(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::UI16
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetUint64(aProp.Value_UI16(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::SI16
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetInt64(aProp.Value_SI16(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::UI32
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetUint64(aProp.Value_UI32(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::SI32
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetInt64(aProp.Value_SI32(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::UI64
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetUint64(aProp.Value_UI64(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::SI64
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetInt64(aProp.Value_SI64(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::Double
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetDouble(aProp.Value_Double(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::Float
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetDouble(static_cast<double>(aProp.Value_Float(aCtx.iDataPtr)));
+}
+
+void    JVisitor_VisitValueCtx::Bool
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    iJsonMemberValue.SetBool(aProp.Value_Bool(aCtx.iDataPtr));
+}
+
+void    JVisitor_VisitValueCtx::UUID
+(
+    const GpReflectProp&    aProp,
+    JVisitor_VisitCtx&      aCtx
+)
+{
+    const std::string propVal = aProp.Value_UUID(aCtx.iDataPtr).ToString();
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
-void    JVisitor_VisitValueCtx::Value_String
+void    JVisitor_VisitValueCtx::String
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const std::u8string& propVal = aProp.Value_String(aDataPtr);
-    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    const std::string& propVal = aProp.Value_String(aCtx.iDataPtr);
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
-void    JVisitor_VisitValueCtx::Value_BLOB
+void    JVisitor_VisitValueCtx::BLOB
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const GpBytesArray& blob = aProp.Value_BLOB(aDataPtr);
-    GpSpanPtrByteR      blobSpan(blob.data(), blob.size());
-    const std::u8string propVal = GpBase64::SEncodeToStr(blobSpan, 0);//StrOps::SFromBytes(aProp.Value_BLOB(aDataPtr));
-    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    const GpBytesArray& blob = aProp.Value_BLOB(aCtx.iDataPtr);
+    GpSpanByteR         blobSpan(std::data(blob), std::size(blob));
+    const std::string   propVal = GpBase64::SEncodeToStr(blobSpan, 0);
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
-void    JVisitor_VisitValueCtx::Value_Object
+void    JVisitor_VisitValueCtx::Object
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const GpReflectObject&              object      = aProp.Value_Object(aDataPtr);
+    const GpReflectObject&              object      = aProp.Value_Object(aCtx.iDataPtr);
     const bool                          isAsTuple   = aProp.FlagTest(GpReflectPropFlag::AS_TUPLE);
     rapidjson::Document::GenericValue&  obj         = isAsTuple ? iJsonMemberValue.SetArray() : iJsonMemberValue.SetObject();
     GpJsonFromObject::SWrite(object, obj, aCtx.iJsonAllocator, aCtx.iJsonSerializerFlags, isAsTuple);
 }
 
-void    JVisitor_VisitValueCtx::Value_ObjectSP
+void    JVisitor_VisitValueCtx::ObjectSP
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const GpReflectObject::SP& objectSP = aProp.Value_ObjectSP(aDataPtr);
+    const GpReflectObject::SP& objectSP = aProp.Value_ObjectSP(aCtx.iDataPtr);
 
     if (objectSP.IsNULL())
     {
@@ -367,140 +330,106 @@ void    JVisitor_VisitValueCtx::Value_ObjectSP
     }
 }
 
-void    JVisitor_VisitValueCtx::Value_Enum
+void    JVisitor_VisitValueCtx::Enum
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    std::u8string_view propVal = aProp.Value_Enum(aDataPtr).ToString();
-    //iJsonMemberValue.SetString(propVal.data(), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    std::string_view propVal = aProp.Value_Enum(aCtx.iDataPtr).ToString();
+    //iJsonMemberValue.SetString(std::data(propVal), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
-void    JVisitor_VisitValueCtx::Value_EnumFlags
+void    JVisitor_VisitValueCtx::EnumFlags
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const GpEnumFlags&                  enumFlags       = aProp.Value_EnumFlags(aDataPtr);
-    std::vector<std::u8string_view>     enumFlagNames   = enumFlags.ToStringViewArray();
+    const GpEnumFlags&                  enumFlags       = aProp.Value_EnumFlags(aCtx.iDataPtr);
+    std::vector<std::string_view>       enumFlagNames   = enumFlags.ToStringViewArray();
     rapidjson::Document::GenericValue&  jsonArray       = iJsonMemberValue.SetArray();
 
-    for (std::u8string_view flagName: enumFlagNames)
+    for (std::string_view flagName: enumFlagNames)
     {
         rapidjson::Value jv;
-        //jv.SetString(flagName.data(), NumOps::SConvert<rapidjson::SizeType>(flagName.length()), aCtx.iJsonAllocator);
+        //jv.SetString(std::data(flagName), NumOps::SConvert<rapidjson::SizeType>(flagName.length()), aCtx.iJsonAllocator);
         _JsonSetStr(jv, flagName, aCtx.iJsonAllocator);
         jsonArray.PushBack(jv.Move(), aCtx.iJsonAllocator);
     }
 }
 
-//------------------------------------- JVisitor_VisitContainerCtx ------------------------------------------
-class JVisitor_VisitContainerCtx
+//------------------------------------- JVisitor_VisitVecCtx ------------------------------------------
+class JVisitor_VisitVecCtx
 {
 public:
-                        JVisitor_VisitContainerCtx  (void) noexcept {}
+            JVisitor_VisitVecCtx    (void) noexcept {}
 
-    [[nodiscard]] bool  OnVisitBegin                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-    void                OnVisitEnd                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    bool    OnVisitBegin            (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    OnVisitEnd              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt8                 (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt8                 (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI8                     (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt16                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt16                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI16                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt32                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt32                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI32                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UInt64                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_SInt64                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    SI64                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Double                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Double                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Float                 (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Float                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Bool                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    UUID                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_UUID                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    String                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_String                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    BLOB                    (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_BLOB                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Object                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename ValGetterT>
-    void                Value_Object                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename ValGetterT>
-    void                Value_ObjectSP              (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename ValGetterT>
-    void                Value_Enum                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename ValGetterT>
-    void                Value_EnumFlags             (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    ObjectSP                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
 public:
     rapidjson::Value                    iJsonMemberName;
@@ -508,9 +437,8 @@ public:
     rapidjson::Document::GenericValue*  iJsonArray = nullptr;
 };
 
-bool    JVisitor_VisitContainerCtx::OnVisitBegin
+bool    JVisitor_VisitVecCtx::OnVisitBegin
 (
-    const void*             /*aDataPtr*/,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
@@ -519,13 +447,13 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     {
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
-            std::u8string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            //iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
+            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
-            std::u8string_view  propName = aProp.Name();
-            //iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            std::string_view    propName = aProp.Name();
+            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
@@ -535,11 +463,10 @@ bool    JVisitor_VisitContainerCtx::OnVisitBegin
     return true;
 }
 
-void    JVisitor_VisitContainerCtx::OnVisitEnd
+void    JVisitor_VisitVecCtx::OnVisitEnd
 (
-    const void*             /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      aCtx
+    [[maybe_unused]] const GpReflectProp&   aProp,
+    JVisitor_VisitCtx&                      aCtx
 )
 {
     if (aCtx.iIsAsTuple)
@@ -552,15 +479,14 @@ void    JVisitor_VisitContainerCtx::OnVisitEnd
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt8
+void    JVisitor_VisitVecCtx::UI8
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::UInt8(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::UI8(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const u_int_8 e: container)
     {
@@ -569,15 +495,14 @@ void    JVisitor_VisitContainerCtx::Value_UInt8
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt8
+void    JVisitor_VisitVecCtx::SI8
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::SInt8(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::SI8(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const s_int_8 e: container)
     {
@@ -586,15 +511,14 @@ void    JVisitor_VisitContainerCtx::Value_SInt8
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt16
+void    JVisitor_VisitVecCtx::UI16
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    auto& container = ValGetterT::UInt16(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    auto& container = ValGetterT::UI16(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const u_int_16 e: container)
     {
@@ -603,15 +527,14 @@ void    JVisitor_VisitContainerCtx::Value_UInt16
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt16
+void    JVisitor_VisitVecCtx::SI16
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::SInt16(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::SI16(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const s_int_16 e: container)
     {
@@ -620,15 +543,14 @@ void    JVisitor_VisitContainerCtx::Value_SInt16
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt32
+void    JVisitor_VisitVecCtx::UI32
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::UInt32(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::UI32(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const u_int_32 e: container)
     {
@@ -637,15 +559,14 @@ void    JVisitor_VisitContainerCtx::Value_UInt32
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt32
+void    JVisitor_VisitVecCtx::SI32
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::SInt32(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::SI32(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const s_int_32 e: container)
     {
@@ -654,15 +575,14 @@ void    JVisitor_VisitContainerCtx::Value_SInt32
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UInt64
+void    JVisitor_VisitVecCtx::UI64
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::UInt64(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::UI64(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const u_int_64 e: container)
     {
@@ -671,15 +591,14 @@ void    JVisitor_VisitContainerCtx::Value_UInt64
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_SInt64
+void    JVisitor_VisitVecCtx::SI64
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::SInt64(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::SI64(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const s_int_64 e: container)
     {
@@ -688,15 +607,14 @@ void    JVisitor_VisitContainerCtx::Value_SInt64
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Double
+void    JVisitor_VisitVecCtx::Double
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::Double(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::Double(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const double e: container)
     {
@@ -705,15 +623,14 @@ void    JVisitor_VisitContainerCtx::Value_Double
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Float
+void    JVisitor_VisitVecCtx::Float
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::Float(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::Float(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const float e: container)
     {
@@ -726,38 +643,19 @@ void    JVisitor_VisitContainerCtx::Value_Float
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Bool
+void    JVisitor_VisitVecCtx::UUID
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::Bool(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
-
-    for (const bool e: container)
-    {
-        iJsonArray->PushBack(rapidjson::Value().SetBool(e), aCtx.iJsonAllocator);
-    }
-}
-
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_UUID
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      aCtx
-)
-{
-    const auto& container = ValGetterT::UUID(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::UUID(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const GpUUID& e: container)
     {
-        const std::u8string s = e.ToString();
+        const std::string s = e.ToString();
         rapidjson::Value jv;
-        //jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
         _JsonSetStr(jv, s, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
@@ -765,20 +663,19 @@ void    JVisitor_VisitContainerCtx::Value_UUID
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_String
+void    JVisitor_VisitVecCtx::String
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::String(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::String(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
-    for (const std::u8string& e: container)
+    for (const std::string& e: container)
     {
         rapidjson::Value jv;
-        //jv.SetString(e.data(), NumOps::SConvert<rapidjson::SizeType>(e.length()), aCtx.iJsonAllocator);
+        //jv.SetString(std::data(e), NumOps::SConvert<rapidjson::SizeType>(e.length()), aCtx.iJsonAllocator);
         _JsonSetStr(jv, e, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
@@ -786,21 +683,20 @@ void    JVisitor_VisitContainerCtx::Value_String
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_BLOB
+void    JVisitor_VisitVecCtx::BLOB
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::BLOB(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::BLOB(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const GpBytesArray& e: container)
     {
-        const std::u8string s = GpBase64::SEncodeToStr(GpSpanPtrByteR(e.data(), e.size()), 0);//StrOps::SFromBytes(e);
+        const std::string s = GpBase64::SEncodeToStr(GpSpanByteR(std::data(e), std::size(e)), 0);//StrOps::SFromBytes(e);
         rapidjson::Value jv;
-        //jv.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
+        //jv.SetString(std::data(s), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
         _JsonSetStr(jv, s, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
@@ -808,17 +704,16 @@ void    JVisitor_VisitContainerCtx::Value_BLOB
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Object
+void    JVisitor_VisitVecCtx::Object
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::Object(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::Object(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
-    const size_t size = container.size();
+    const size_t size = std::size(container);
 
     for (size_t id = 0; id < size; id++)
     {
@@ -834,15 +729,14 @@ void    JVisitor_VisitContainerCtx::Value_Object
 }
 
 template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_ObjectSP
+void    JVisitor_VisitVecCtx::ObjectSP
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT::ObjectSP(aDataPtr, aProp);
-    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(container.size()), aCtx.iJsonAllocator);
+    const auto& container = ValGetterT::ObjectSP(aCtx.iDataPtr, aProp);
+    iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
     for (const GpReflectObject::SP& e: container)
     {
@@ -863,158 +757,113 @@ void    JVisitor_VisitContainerCtx::Value_ObjectSP
     }
 }
 
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_Enum
-(
-    const void*             /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    THROW_GP(u8"Arrays of enums are not supported"_sv);
-}
-
-template<typename ValGetterT>
-void    JVisitor_VisitContainerCtx::Value_EnumFlags
-(
-    const void*             /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      /*aCtx*/
-)
-{
-    THROW_GP(u8"Arrays of enum flags are not supported"_sv);
-}
-
 //------------------------------------- JVisitor_VisitMapCtx ------------------------------------------
 class JVisitor_VisitMapCtx
 {
 public:
-                        JVisitor_VisitMapCtx        (void) noexcept {}
+            JVisitor_VisitMapCtx    (void) noexcept {}
 
-    [[nodiscard]] bool  OnVisitBegin                (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-    void                OnVisitEnd                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    bool    OnVisitBegin            (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
+    void    OnVisitEnd              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt8                     (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI8                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt8                     (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI8                   (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt16                    (const void*        aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI16                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt16                    (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI16                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt32                    (const void*        aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI32                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt32                    (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI32                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UInt64                    (const void*        aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UI64                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_SInt64                    (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_SI64                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_Double                    (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_Double                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_Float                     (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_Float                 (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_Bool                      (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_UUID                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_UUID                      (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_String                (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_String                    (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_BLOB                  (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename                       KeyT,
              typename                       ValT,
              template<typename...> class    ValGetterT>
-    void                K_BLOB                      (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
-
-    template<typename                       KeyT,
-             typename                       ValT,
-             template<typename...> class    ValGetterT>
-    void                K_ObjectSP                  (const void*            aDataPtr,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    K_ObjectSP              (const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename CT>
-    void                Process                     (const CT&              aContainer,
-                                                     const GpReflectProp&   aProp,
-                                                     JVisitor_VisitCtx&     aCtx);
+    void    Process                 (const CT&              aContainer,
+                                     const GpReflectProp&   aProp,
+                                     JVisitor_VisitCtx&     aCtx);
 
     template<typename VT>
-    void                ProcessMapKey               (rapidjson::Value&                      aJValOut,
-                                                     const VT&                              aValue,
-                                                     rapidjson::Document::AllocatorType&    aJsonAllocator);
+    void    ProcessMapKey           (rapidjson::Value&                      aJValOut,
+                                     const VT&                              aValue,
+                                     rapidjson::Document::AllocatorType&    aJsonAllocator);
 
     template<typename VT>
-    void                ProcessMapVal               (rapidjson::Value&                      aJValOut,
-                                                     const VT&                              aValue,
-                                                     const GpReflectProp&                   aProp,
-                                                     rapidjson::Document::AllocatorType&    aJsonAllocator,
-                                                     const GpJsonSerializerFlags&           aJsonSerializerFlags);
+    void    ProcessMapVal           (rapidjson::Value&                      aJValOut,
+                                     const VT&                              aValue,
+                                     const GpReflectProp&                   aProp,
+                                     rapidjson::Document::AllocatorType&    aJsonAllocator,
+                                     const GpJsonSerializerFlags&           aJsonSerializerFlags);
 
 public:
     rapidjson::Value                    iJsonMemberName;
@@ -1024,7 +873,6 @@ public:
 
 bool    JVisitor_VisitMapCtx::OnVisitBegin
 (
-    const void*             /*aDataPtr*/,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
@@ -1033,13 +881,13 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
     {
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
-            std::u8string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            //iJsonMemberName.SetString(name.data(), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
+            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
-            std::u8string_view propName = aProp.Name();
-            //iJsonMemberName.SetString(propName.data(), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            std::string_view propName = aProp.Name();
+            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
@@ -1051,9 +899,8 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
 
 void    JVisitor_VisitMapCtx::OnVisitEnd
 (
-    const void*             /*aDataPtr*/,
-    const GpReflectProp&    /*aProp*/,
-    JVisitor_VisitCtx&      aCtx
+    [[maybe_unused]] const GpReflectProp&   aProp,
+    JVisitor_VisitCtx&                      aCtx
 )
 {
     if (aCtx.iIsAsTuple)
@@ -1068,112 +915,104 @@ void    JVisitor_VisitMapCtx::OnVisitEnd
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt8
+void    JVisitor_VisitMapCtx::K_UI8
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::UInt8(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::UI8(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt8
+void    JVisitor_VisitMapCtx::K_SI8
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::SInt8(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::SI8(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt16
+void    JVisitor_VisitMapCtx::K_UI16
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::UInt16(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::UI16(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt16
+void    JVisitor_VisitMapCtx::K_SI16
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::SInt16(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::SI16(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt32
+void    JVisitor_VisitMapCtx::K_UI32
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::UInt32(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::UI32(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt32
+void    JVisitor_VisitMapCtx::K_SI32
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::SInt32(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::SI32(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_UInt64
+void    JVisitor_VisitMapCtx::K_UI64
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::UInt64(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::UI64(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
 template<typename                       KeyT,
          typename                       ValT,
          template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_SInt64
+void    JVisitor_VisitMapCtx::K_SI64
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::SInt64(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::SI64(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1182,12 +1021,11 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_Double
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::Double(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::Double(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1196,26 +1034,11 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_Float
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::Float(aDataPtr, aProp);
-    Process(container, aProp, aCtx);
-}
-
-template<typename                       KeyT,
-         typename                       ValT,
-         template<typename...> class    ValGetterT>
-void    JVisitor_VisitMapCtx::K_Bool
-(
-    const void*             aDataPtr,
-    const GpReflectProp&    aProp,
-    JVisitor_VisitCtx&      aCtx
-)
-{
-    const auto& container = ValGetterT<KeyT>::Bool(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::Float(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1224,12 +1047,11 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_UUID
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::UUID(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::UUID(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1238,12 +1060,11 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_String
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::String(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::String(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1252,12 +1073,11 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_BLOB
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::BLOB(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::BLOB(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1266,12 +1086,11 @@ template<typename                       KeyT,
          template<typename...> class    ValGetterT>
 void    JVisitor_VisitMapCtx::K_ObjectSP
 (
-    const void*             aDataPtr,
     const GpReflectProp&    aProp,
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const auto& container = ValGetterT<KeyT>::ObjectSP(aDataPtr, aProp);
+    const auto& container = ValGetterT<KeyT>::ObjectSP(aCtx.iDataPtr, aProp);
     Process(container, aProp, aCtx);
 }
 
@@ -1312,72 +1131,58 @@ void    JVisitor_VisitMapCtx::ProcessMapKey
 
     if constexpr (type == GpReflectType::U_INT_8)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_8)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::U_INT_16)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_16)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::U_INT_32)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_32)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::U_INT_64)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::S_INT_64)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::DOUBLE)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::FLOAT)
     {
-        const std::u8string s = StrOps::SToString(aValue);
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = std::to_string(aValue);
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BOOLEAN)
     {
-        std::u8string_view s = aValue ? "true"_sv : "false"_sv;
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        std::string_view s = aValue ? "true"_sv : "false"_sv;
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::UUID)
     {
-        const std::u8string s = aValue.ToString();
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = aValue.ToString();
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::STRING)
     {
-        //aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
         _JsonSetStr(aJValOut, aValue, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        const std::u8string s = GpBase64::SEncodeToStr(GpSpanPtrByteR(aValue.data(), aValue.size()), 0);/*StrOps::SFromBytes(aValue);*/
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = GpBase64::SEncodeToStr(GpSpanByteR(std::data(aValue), std::size(aValue)), 0);/*StrOps::SFromBytes(aValue);*/
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
@@ -1393,7 +1198,7 @@ void    JVisitor_VisitMapCtx::ProcessMapKey
         THROW_GP("Enums flags are not supported as map key"_sv);
     } else
     {
-        GpThrowCe<GpException>(u8"Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + u8"'"_sv);
+        GpThrowCe<GpException>("Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + "'"_sv);
     }
 }
 
@@ -1444,17 +1249,14 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         aJValOut.SetBool(aValue);
     } else if constexpr (type == GpReflectType::UUID)
     {
-        const std::u8string s = aValue.ToString();
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = aValue.ToString();
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::STRING)
     {
-        //aJValOut.SetString(aValue.data(), NumOps::SConvert<rapidjson::SizeType>(aValue.length()), aJsonAllocator);
         _JsonSetStr(aJValOut, aValue, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        const std::u8string s = GpBase64::SEncodeToStr(GpSpanPtrByteR(aValue.data(), aValue.size()), 0);/*StrOps::SFromBytes(aValue);*/
-        //aJValOut.SetString(s.data(), NumOps::SConvert<rapidjson::SizeType>(s.length()), aJsonAllocator);
+        const std::string s = GpBase64::SEncodeToStr(GpSpanByteR(std::data(aValue), std::size(aValue)), 0);/*StrOps::SFromBytes(aValue);*/
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
@@ -1473,13 +1275,13 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         }
     } else if constexpr (type == GpReflectType::ENUM)
     {
-        THROW_GP(u8"Enums are not supported"_sv);
+        THROW_GP("Enums are not supported"_sv);
     } else if constexpr (type == GpReflectType::ENUM_FLAGS)
     {
-        THROW_GP(u8"Enums flags are not supported"_sv);
+        THROW_GP("Enums flags are not supported"_sv);
     } else
     {
-        GpThrowCe<GpException>(u8"Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + u8"'"_sv);
+        GpThrowCe<GpException>("Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + "'"_sv);
     }
 }
 
@@ -1488,23 +1290,23 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
 class JVisitor
 {
 public:
-    using VisitCtx          = JVisitor_VisitCtx;
-    using VisitValueCtx     = JVisitor_VisitValueCtx;
-    using VisitContainerCtx = JVisitor_VisitContainerCtx;
-    using VisitMapCtx       = JVisitor_VisitMapCtx;
+    using VisitCtx      = JVisitor_VisitCtx;
+    using VisitValueCtx = JVisitor_VisitValueCtx;
+    using VisitVecCtx   = JVisitor_VisitVecCtx;
+    using VisitMapCtx   = JVisitor_VisitMapCtx;
 };
 
-}//namespace ObjectVisitor_JsonFromObject
+}// namespace ObjectVisitor_JsonFromObject
 
 //-------------------------------------------------------------------------------
 
-std::u8string   GpJsonFromObject::SToString (const rapidjson::Document& aJsonDOM)
+std::string GpJsonFromObject::SToString (const rapidjson::Document& aJsonDOM)
 {
     rapidjson::StringBuffer                     buffer;
     rapidjson::Writer<rapidjson::StringBuffer>  writer(buffer);
     aJsonDOM.Accept(writer);
 
-    return std::u8string(GpUTF::S_As_UTF8(std::string_view(buffer.GetString(), buffer.GetSize())));
+    return std::string(std::string_view(buffer.GetString(), buffer.GetSize()));
 }
 
 void    GpJsonFromObject::SToString
@@ -1525,11 +1327,18 @@ void    GpJsonFromObject::SWrite
     const bool                          aIsAsTuple
 )
 {
-    GpReflectVisitor<const GpReflectObject, ObjectVisitor_JsonFromObject::JVisitor> visitor;
-    ObjectVisitor_JsonFromObject::JVisitor_VisitCtx ctx(aJsonObject, aJsonAllocator, aJsonSerializerFlags, aIsAsTuple);
+    GpReflectVisitor<ObjectVisitor_JsonFromObject::JVisitor> visitor;
+    ObjectVisitor_JsonFromObject::JVisitor_VisitCtx ctx
+    (
+        aJsonObject,
+        aJsonAllocator,
+        aJsonSerializerFlags,
+        aIsAsTuple,
+        aObject.ReflectDataPtr()
+    );
 
-    const GpReflectModel& model = aObject.ReflectModel();
-    visitor.Visit(model, aObject.ReflectDataPtr(), ctx);
+    GpReflectModel::CSP modelCSP = aObject.ReflectModel();
+    visitor.Visit(modelCSP.Vn(), ctx);
 }
 
-}//namespace GPlatform
+}// namespace GPlatform

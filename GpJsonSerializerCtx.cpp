@@ -1,24 +1,18 @@
 #include "GpJsonSerializerCtx.hpp"
 #include "GpJsonToObject.hpp"
+#include "GpJsonUtilsInternal.hpp"
 
 GP_WARNING_PUSH()
-GP_WARNING_DISABLE(switch-enum)
 
-#include <rapidjson/document.h>
+#if defined(GP_COMPILER_CLANG) || defined(GP_COMPILER_GCC)
+    GP_WARNING_DISABLE(switch-enum)
+#endif// #if defined(GP_COMPILER_CLANG) || defined(GP_COMPILER_GCC)
+
+#   include <rapidjson/document.h>
 
 GP_WARNING_POP()
 
 namespace GPlatform {
-
-std::u8string_view  _JsonValue2SV (const rapidjson::Document::GenericValue& aJsonValue)
-{
-    return GpUTF::S_As_UTF8(std::string_view(aJsonValue.GetString(), aJsonValue.GetStringLength()));
-}
-
-std::u8string_view  _JsonValue2SV (const rapidjson::Document::GenericValue* aJsonValue)
-{
-    return GpUTF::S_As_UTF8(std::string_view(aJsonValue->GetString(), aJsonValue->GetStringLength()));
-}
 
 GpJsonSerializerCtx::~GpJsonSerializerCtx (void) noexcept
 {
@@ -47,7 +41,7 @@ void    GpJsonSerializerCtx::Clear (void) noexcept
     }
 }
 
-void    GpJsonSerializerCtx::Init (GpSpanPtrCharU8RW aJsonStr)
+void    GpJsonSerializerCtx::Parse (GpSpanCharRW aJsonStr)
 {
     Clear();
 
@@ -78,24 +72,58 @@ void    GpJsonSerializerCtx::Init (GpSpanPtrCharU8RW aJsonStr)
     }
 }
 
-std::optional<std::u8string>    GpJsonSerializerCtx::FindMemberStr (const std::u8string& aName)
+std::optional<std::string>  GpJsonSerializerCtx::FindMemberStr (const std::string& aName) const
 {
     if (IsArray())
     {
         return std::nullopt;
     }
 
-    const rapidjson::Document::ConstObject&     jsonObject  = RootValue<rapidjson::Document::ConstObject>();
-    rapidjson::Document::ConstMemberIterator    iter        = jsonObject.FindMember(GpUTF::S_As_STR(aName).data());
+    const rapidjson::Document::ConstObject&     jsonObject  = *reinterpret_cast<const rapidjson::Document::ConstObject*>(RootAsObject());
+    rapidjson::Document::ConstMemberIterator    iter        = jsonObject.FindMember(std::data(aName));
 
     if (iter != jsonObject.MemberEnd())
     {
         const auto& mitVal = iter->value;
-        return std::u8string(_JsonValue2SV(mitVal));
+        return std::string(_JsonValue2SV(mitVal));
     } else
     {
         return std::nullopt;
     }
 }
 
-}//namespace GPlatform
+const void* GpJsonSerializerCtx::RootAsObject (void) const
+{
+    THROW_COND_GP
+    (
+        iJsonRootValue != nullptr,
+        "Json root value is null. Call Init first"_sv
+    );
+
+    THROW_COND_GP
+    (
+        iIsArray == false,
+        "Json root value is array"_sv
+    );
+
+    return iJsonRootValue;
+}
+
+const void* GpJsonSerializerCtx::RootAsArray (void) const
+{
+    THROW_COND_GP
+    (
+        iJsonRootValue != nullptr,
+        "Json root value is null. Call Init first"_sv
+    );
+
+    THROW_COND_GP
+    (
+        iIsArray == true,
+        "Json root value is object"_sv
+    );
+
+    return iJsonRootValue;
+}
+
+}// namespace GPlatform

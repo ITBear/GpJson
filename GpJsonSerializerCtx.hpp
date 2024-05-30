@@ -16,17 +16,17 @@ public:
     CLASS_DD(GpJsonSerializerCtx)
 
 public:
-                                    GpJsonSerializerCtx     (void) noexcept = default;
-    virtual                         ~GpJsonSerializerCtx    (void) noexcept;
+                                GpJsonSerializerCtx     (void) noexcept = default;
+    virtual                     ~GpJsonSerializerCtx    (void) noexcept;
 
-    void                            Clear                   (void) noexcept;
-    void                            Init                    (GpSpanPtrCharU8RW aJsonStr);
-    std::optional<std::u8string>    FindMemberStr           (const std::u8string& aName);
+    void                        Clear                   (void) noexcept;
+    void                        Parse                   (GpSpanCharRW aJsonStr);
+    std::optional<std::string>  FindMemberStr           (const std::string& aName) const;
 
-    bool                            IsArray                 (void) const noexcept {return iIsArray;}
+    bool                        IsArray                 (void) const noexcept {return iIsArray;}
 
-    template<typename T>
-    const T&                        RootValue               (void) const;
+    const void*                 RootAsObject            (void) const;
+    const void*                 RootAsArray             (void) const;
 
 private:
     void*   iJsonDOM        = nullptr;
@@ -34,16 +34,4 @@ private:
     bool    iIsArray        = false;
 };
 
-template<typename T>
-const T&    GpJsonSerializerCtx::RootValue (void) const
-{
-    THROW_COND_GP
-    (
-        iJsonRootValue != nullptr,
-        "Json root value is null. Call Init first"_sv
-    );
-
-    return *static_cast<const T*>(iJsonRootValue);
-}
-
-}//namespace GPlatform
+}// namespace GPlatform

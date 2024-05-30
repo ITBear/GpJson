@@ -9,27 +9,27 @@ GpJsonSerializer::~GpJsonSerializer (void) noexcept
 {
 }
 
-GpReflectObject::SP GpJsonSerializer::ToObject (GpSpanPtrByteR aData) const
+GpReflectObject::SP GpJsonSerializer::ToObject (GpSpanByteR aData) const
 {
-    return SFromStr(aData.AsStringViewU8(), iFlags);
+    return SFromStr(aData.AsStringView(), iFlags);
 }
 
 GpReflectObject::SP GpJsonSerializer::ToObject
 (
-    GpSpanPtrByteR          aData,
+    GpSpanByteR             aData,
     const GpReflectModel&   aModel
 ) const
 {
-    return SFromStr(aData.AsStringViewU8(), aModel, iFlags);
+    return SFromStr(aData.AsStringView(), aModel, iFlags);
 }
 
 GpReflectObject::SP GpJsonSerializer::ToObject
 (
-    GpSpanPtrByteR                              aData,
+    GpSpanByteR                                 aData,
     const std::vector<const GpReflectModel*>&   aModelVariants
 ) const
 {
-    return SFromStr(aData.AsStringViewU8(), aModelVariants, iFlags);
+    return SFromStr(aData.AsStringView(), aModelVariants, iFlags);
 }
 
 GpReflectObject::SP GpJsonSerializer::ToObject
@@ -45,9 +45,8 @@ GpReflectObject::SP GpJsonSerializer::ToObject
         return aModel.NewInstance();
     }
 
-    const rapidjson::Document::ConstObject& jsonObject = ctx.RootValue<rapidjson::Document::ConstObject>();
-
-    const GpReflectModel& model = GpJsonToObject::SCheckModel
+    const rapidjson::Document::ConstObject& jsonObject  = *reinterpret_cast<const rapidjson::Document::ConstObject*>(ctx.RootAsObject());
+    const GpReflectModel&                   model       = GpJsonToObject::SCheckModel
     (
         jsonObject,
         aModel
@@ -71,7 +70,7 @@ void    GpJsonSerializer::FromObject
 
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
-    std::u8string_view          aJsonStr,
+    std::string_view            aJsonStr,
     const GpJsonSerializerFlags aFlags
 )
 {
@@ -95,7 +94,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
-    std::u8string_view          aJsonStr,
+    std::string_view            aJsonStr,
     const GpReflectModel&       aModel,
     const GpJsonSerializerFlags aFlags
 )
@@ -117,7 +116,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 
 GpReflectObject::SP GpJsonSerializer::SFromStr
 (
-    std::u8string_view                          aJsonStr,
+    std::string_view                            aJsonStr,
     const std::vector<const GpReflectModel*>&   aModelVariants,
     const GpJsonSerializerFlags                 aFlags
 )
@@ -139,7 +138,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 
 void    GpJsonSerializer::SFromStr
 (
-    std::u8string_view          aJsonStr,
+    std::string_view            aJsonStr,
     GpReflectObject&            aOut,
     const GpJsonSerializerFlags aFlags
 )
@@ -152,7 +151,7 @@ void    GpJsonSerializer::SFromStr
 
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
-    std::u8string_view          aJsonStr,
+    std::string_view            aJsonStr,
     const GpJsonSerializerFlags aFlags
 )
 {
@@ -184,7 +183,7 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
-    std::u8string_view          aJsonStr,
+    std::string_view            aJsonStr,
     const GpReflectModel&       aModel,
     const GpJsonSerializerFlags aFlags
 )
@@ -213,7 +212,7 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
 GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 (
-    std::u8string_view                          aJsonStr,
+    std::string_view                            aJsonStr,
     const std::vector<const GpReflectModel*>&   aModelVariants,
     const GpJsonSerializerFlags                 aFlags
 )
@@ -242,7 +241,7 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
 GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharU8RW           aJsonStr,
+    GpSpanCharRW                aJsonStr,
     const GpJsonSerializerFlags aFlags
 )
 {
@@ -274,7 +273,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 
 GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharU8RW           aJsonStr,
+    GpSpanCharRW                aJsonStr,
     const GpReflectModel&       aModel,
     const GpJsonSerializerFlags aFlags
 )
@@ -304,7 +303,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
 
 void    GpJsonSerializer::SFromStrInsitu
 (
-    GpSpanPtrCharU8RW           aJsonStr,
+    GpSpanCharRW                aJsonStr,
     GpReflectObject&            aOut,
     const GpJsonSerializerFlags aFlags
 )
@@ -323,7 +322,7 @@ void    GpJsonSerializer::SFromStrInsitu
     GpJsonToObject::SReadObject(aOut, jsonObject, aFlags);
 }
 
-std::u8string   GpJsonSerializer::SToStr
+std::string GpJsonSerializer::SToStr
 (
     const GpReflectObject&      aObject,
     const GpJsonSerializerFlags aFlags
@@ -348,4 +347,4 @@ void    GpJsonSerializer::SToStr
     GpJsonFromObject::SToString(jsonDOM, aWriter);
 }
 
-}//namespace GPlatform
+}// namespace GPlatform

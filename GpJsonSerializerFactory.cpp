@@ -12,4 +12,4 @@ GpReflectSerializer::SP GpJsonSerializerFactory::NewInstance (void) const
     return MakeSP<GpJsonSerializer>(iFlags);
 }
 
-}//namespace GPlatform
+}// namespace GPlatform
