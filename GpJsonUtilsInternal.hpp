@@ -1,11 +1,11 @@
 #pragma once
 
-#include <string>
-#include <string_view>
-
+#include <GpCore2/GpUtils/Types/Strings/GpStringOps.hpp>
 #include <GpCore2/GpUtils/Types/Strings/GpUTF.hpp>
 #include <GpCore2/GpUtils/Types/Strings/GpStringOps.hpp>
 #include <GpCore2/GpUtils/Macro/GpMacroWarnings.hpp>
+
+#include <string_view>
 
 #define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
 
@@ -41,7 +41,7 @@ inline void _JsonSetStr
     aObj.SetString
     (
         std::data(aValue),
-        NumOps::SConvert<rapidjson::SizeType>(aValue.length()),
+        NumOps::SConvert<rapidjson::SizeType>(std::size(aValue)),
         aJsonAllocator
     );
 }

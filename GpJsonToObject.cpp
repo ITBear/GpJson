@@ -332,7 +332,7 @@ void    JVisitor_VisitValueCtx::String
     JVisitor_VisitCtx&      aCtx
 )
 {
-    aProp.Value_String(aCtx.iDataPtr) = std::string(_JsonValue2SV(iMitVal));
+    aProp.Value_String(aCtx.iDataPtr) = std::string{_JsonValue2SV(iMitVal)};
 }
 
 void    JVisitor_VisitValueCtx::BLOB
@@ -341,7 +341,7 @@ void    JVisitor_VisitValueCtx::BLOB
     JVisitor_VisitCtx&      aCtx
 )
 {
-    aProp.Value_BLOB(aCtx.iDataPtr) = GpBase64::SDecodeToByteArray(_JsonValue2SV(iMitVal));
+    aProp.Value_BLOB(aCtx.iDataPtr) = GpBase64::SDecode<GpBytesArray>(_JsonValue2SV(iMitVal));
 }
 
 void    JVisitor_VisitValueCtx::Object
@@ -798,7 +798,7 @@ void    JVisitor_VisitVecCtx::BLOB
 
     for (const auto& v: jArray)
     {
-        SEmplaceBack(container, GpBase64::SDecodeToByteArray(_JsonValue2SV(v)));
+        SEmplaceBack(container, GpBase64::SDecode<GpBytesArray>(_JsonValue2SV(v)));
     }
 }
 
@@ -1299,12 +1299,10 @@ void    JVisitor_VisitMapCtx::K_BLOB
 
     for (const auto& [name, value]: jObj)
     {
-        GpBytesArray data = GpBase64::SDecodeToByteArray(_JsonValue2SV(value));
-
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
-            std::move(data)
+            GpBase64::SDecode<GpBytesArray>(_JsonValue2SV(value))
         );
     }
 }
@@ -1390,7 +1388,7 @@ T   JVisitor_VisitMapCtx::ProcessMapKey (std::string_view aValue)
         return std::string(aValue);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        return GpBase64::SDecodeToByteArray(aValue);/*StrOps::SToBytes(aValue);*/
+        return GpBase64::SDecode<GpBytesArray>(aValue);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
         GpThrowCe<GpException>("Objects are not supported as a map key");
@@ -1414,10 +1412,10 @@ T   JVisitor_VisitMapCtx::ProcessMapKey (std::string_view aValue)
 class JVisitor
 {
 public:
-    using VisitCtx          = JVisitor_VisitCtx;
-    using VisitValueCtx     = JVisitor_VisitValueCtx;
+    using VisitCtx      = JVisitor_VisitCtx;
+    using VisitValueCtx = JVisitor_VisitValueCtx;
     using VisitVecCtx   = JVisitor_VisitVecCtx;
-    using VisitMapCtx       = JVisitor_VisitMapCtx;
+    using VisitMapCtx   = JVisitor_VisitMapCtx;
 };
 
 }// namespace ObjectVisitor_JsonToObject

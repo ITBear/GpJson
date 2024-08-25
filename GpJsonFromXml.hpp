@@ -9,7 +9,7 @@
 #include "GpJson_global.hpp"
 
 #include <GpCore2/GpUtils/Macro/GpMacroClass.hpp>
-#include <string>
+#include <GpCore2/GpUtils/Types/Strings/GpStringOps.hpp>
 
 namespace GPlatform {
 

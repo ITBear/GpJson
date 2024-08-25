@@ -1,16 +1,19 @@
 # ----------- Config -----------
 TEMPLATE        = lib
-#CONFIG        += staticlib
 QMAKE_CXXFLAGS += -DGP_REFLECTION_STATIC_ADD_TO_MANAGER
 QMAKE_CXXFLAGS += -DGP_MODULE_UUID=73be6325-e256-436e-9db1-82788105e16e
 PACKET_NAME     = GpJson
 DEFINES        += GP_JSON_LIBRARY
 _VER_MAJ        = 2
 _VER_MIN        = 1
-_VER_PAT        = 5
+_VER_PAT        = 6
 DIR_LEVEL       = ./..
 
 include($$DIR_LEVEL/../QtGlobalPro.pri)
+
+release_build_static{
+	CONFIG += staticlib
+}
 
 # ----------- Libraries -----------
 os_windows{

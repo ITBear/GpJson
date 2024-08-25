@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpJsonConfigure.hpp"
+#include <GpJson/GpJsonConfigure.hpp>
 #include <GpCore2/GpUtils/Macro/GpMacroImportExport.hpp>
 
 #if defined(GP_JSON_LIBRARY)

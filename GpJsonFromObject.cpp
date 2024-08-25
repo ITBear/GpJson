@@ -63,7 +63,7 @@ bool    JVisitor_VisitCtx::OnVisitBegin (const GpReflectModel& aModel)
             const std::string modelUidStr = aModel.Uid().ToString();
 
             _JsonSetStr(obj, modelUidStr, iJsonAllocator);
-            //obj.SetString(std::data(modelUidStr), NumOps::SConvert<rapidjson::SizeType>(modelUidStr.length()), iJsonAllocator);
+            //obj.SetString(std::data(modelUidStr), NumOps::SConvert<rapidjson::SizeType>(std::size(modelUidStr)), iJsonAllocator);
 
             iJsonObject.AddMember(name.Move(), obj.Move(), iJsonAllocator);
         }
@@ -139,12 +139,12 @@ bool    JVisitor_VisitValueCtx::OnVisitBegin
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
             std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(std::size(name)), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
             std::string_view propName = aProp.Name();
-            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(std::size(propName)), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
@@ -294,7 +294,7 @@ void    JVisitor_VisitValueCtx::BLOB
 {
     const GpBytesArray& blob = aProp.Value_BLOB(aCtx.iDataPtr);
     GpSpanByteR         blobSpan(std::data(blob), std::size(blob));
-    const std::string   propVal = GpBase64::SEncodeToStr(blobSpan, 0);
+    const std::string   propVal = GpBase64::SEncode<std::string>(blobSpan, 0);
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
@@ -337,7 +337,7 @@ void    JVisitor_VisitValueCtx::Enum
 )
 {
     std::string_view propVal = aProp.Value_Enum(aCtx.iDataPtr).ToString();
-    //iJsonMemberValue.SetString(std::data(propVal), NumOps::SConvert<rapidjson::SizeType>(propVal.length()), aCtx.iJsonAllocator);
+    //iJsonMemberValue.SetString(std::data(propVal), NumOps::SConvert<rapidjson::SizeType>(std::size(propVal)), aCtx.iJsonAllocator);
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
 }
 
@@ -354,7 +354,7 @@ void    JVisitor_VisitValueCtx::EnumFlags
     for (std::string_view flagName: enumFlagNames)
     {
         rapidjson::Value jv;
-        //jv.SetString(std::data(flagName), NumOps::SConvert<rapidjson::SizeType>(flagName.length()), aCtx.iJsonAllocator);
+        //jv.SetString(std::data(flagName), NumOps::SConvert<rapidjson::SizeType>(std::size(flagName)), aCtx.iJsonAllocator);
         _JsonSetStr(jv, flagName, aCtx.iJsonAllocator);
         jsonArray.PushBack(jv.Move(), aCtx.iJsonAllocator);
     }
@@ -448,12 +448,12 @@ bool    JVisitor_VisitVecCtx::OnVisitBegin
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
             std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(std::size(name)), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
             std::string_view    propName = aProp.Name();
-            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(std::size(propName)), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
@@ -675,7 +675,7 @@ void    JVisitor_VisitVecCtx::String
     for (const std::string& e: container)
     {
         rapidjson::Value jv;
-        //jv.SetString(std::data(e), NumOps::SConvert<rapidjson::SizeType>(e.length()), aCtx.iJsonAllocator);
+        //jv.SetString(std::data(e), NumOps::SConvert<rapidjson::SizeType>(std::size(e)), aCtx.iJsonAllocator);
         _JsonSetStr(jv, e, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
@@ -694,9 +694,9 @@ void    JVisitor_VisitVecCtx::BLOB
 
     for (const GpBytesArray& e: container)
     {
-        const std::string s = GpBase64::SEncodeToStr(GpSpanByteR(std::data(e), std::size(e)), 0);//StrOps::SFromBytes(e);
+        const std::string s = GpBase64::SEncode<std::string>(GpSpanByteR(std::data(e), std::size(e)), 0);//StrOps::SFromBytes(e);
         rapidjson::Value jv;
-        //jv.SetString(std::data(s), NumOps::SConvert<rapidjson::SizeType>(s.length()), aCtx.iJsonAllocator);
+        //jv.SetString(std::data(s), NumOps::SConvert<rapidjson::SizeType>(std::size(s)), aCtx.iJsonAllocator);
         _JsonSetStr(jv, s, aCtx.iJsonAllocator);
 
         iJsonArray->PushBack(jv.Move(), aCtx.iJsonAllocator);
@@ -882,12 +882,12 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
         if (aProp.FlagTest(GpReflectPropFlag::NAME_OVERRIDE))
         {
             std::string_view name = aProp.FlagArg(GpReflectPropFlag::NAME_OVERRIDE).value();
-            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(name.length()), aCtx.iJsonAllocator);
+            //iJsonMemberName.SetString(std::data(name), NumOps::SConvert<rapidjson::SizeType>(std::size(name)), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, name, aCtx.iJsonAllocator);
         } else
         {
             std::string_view propName = aProp.Name();
-            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(propName.length()), aCtx.iJsonAllocator);
+            //iJsonMemberName.SetString(std::data(propName), NumOps::SConvert<rapidjson::SizeType>(std::size(propName)), aCtx.iJsonAllocator);
             _JsonSetStr(iJsonMemberName, propName, aCtx.iJsonAllocator);
         }
     }
@@ -1182,7 +1182,7 @@ void    JVisitor_VisitMapCtx::ProcessMapKey
         _JsonSetStr(aJValOut, aValue, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        const std::string s = GpBase64::SEncodeToStr(GpSpanByteR(std::data(aValue), std::size(aValue)), 0);/*StrOps::SFromBytes(aValue);*/
+        const std::string s = GpBase64::SEncode<std::string>(GpSpanByteR(std::data(aValue), std::size(aValue)), 0);/*StrOps::SFromBytes(aValue);*/
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
@@ -1256,7 +1256,7 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         _JsonSetStr(aJValOut, aValue, aJsonAllocator);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        const std::string s = GpBase64::SEncodeToStr(GpSpanByteR(std::data(aValue), std::size(aValue)), 0);/*StrOps::SFromBytes(aValue);*/
+        const std::string s = GpBase64::SEncode<std::string>(GpSpanByteR(std::data(aValue), std::size(aValue)), 0);/*StrOps::SFromBytes(aValue);*/
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
