@@ -1,7 +1,6 @@
 #pragma once
 
-#include "GpJson_global.hpp"
-
+#include <GpJson/GpJson_global.hpp>
 #include <GpCore2/GpUtils/Types/Enums/GpEnum.hpp>
 #include <GpCore2/GpUtils/Types/Strings/GpStringOps.hpp>
 

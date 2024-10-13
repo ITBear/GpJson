@@ -1,7 +1,7 @@
-#include "GpJsonLib.hpp"
+#include <GpJson/GpJsonLib.hpp>
 
 namespace GPlatform {
 
-GP_IMPLEMENT_LIB(GpJsonLib)
+GP_IMPLEMENT_LIB_REGISTRATOR(GpJsonLib)
 
 }// namespace GPlatform

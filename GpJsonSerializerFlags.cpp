@@ -1,4 +1,4 @@
-#include "GpJsonSerializerFlags.hpp"
+#include <GpJson/GpJsonSerializerFlags.hpp>
 
 namespace GPlatform {
 

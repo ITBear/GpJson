@@ -1,7 +1,7 @@
-#include "GpJsonSerializer.hpp"
-#include "GpJsonToObject.hpp"
-#include "GpJsonFromObject.hpp"
-#include "GpJsonSerializerCtx.hpp"
+#include <GpJson/GpJsonSerializer.hpp>
+#include <GpJson/GpJsonToObject.hpp>
+#include <GpJson/GpJsonFromObject.hpp>
+#include <GpJson/GpJsonSerializerCtx.hpp>
 
 namespace GPlatform {
 
