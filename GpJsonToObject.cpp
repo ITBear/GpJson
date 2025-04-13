@@ -35,7 +35,7 @@ double  JVisitor_SReadDouble (const rapidjson::Document::GenericValue& aJsonValu
         }
     } else
     {
-        THROW_GP("Unsupported type"_sv);
+        THROW("Unsupported type"_sv);
     }
 
     return res;
@@ -536,7 +536,7 @@ bool    JVisitor_VisitVecCtx::OnVisitBegin
 
     iMitVal = &(iMit->value);
 
-    THROW_COND_GP
+    VERIFY
     (
         iMitVal->IsArray(),
         [&](){return "Json value '"_sv + propName + "' must be array"_sv;}
@@ -1000,7 +1000,7 @@ bool    JVisitor_VisitMapCtx::OnVisitBegin
 
     iMitVal = &(iMit->value);
 
-    THROW_COND_GP
+    VERIFY
     (
         iMitVal->IsObject(),
         [&](){return "Json value '"_sv + propName + "' must be object"_sv;}
@@ -1449,7 +1449,7 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
     rapidjson::Document&    aJsonDOM
 )
 {
-    THROW_COND_GP
+    VERIFY
     (
         !aJsonStr.empty(),
         "Json string is empty"_sv
@@ -1460,11 +1460,11 @@ rapidjson::Document::ConstObject    GpJsonToObject::SParseJsonDom
     if (aJsonDOM.Parse(std::data(jsonStr), std::size(jsonStr)).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
+        THROW("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     //Check for root element is object
-    THROW_COND_GP
+    VERIFY
     (
         aJsonDOM.IsObject(),
         "Json root element must be an object"_sv
@@ -1479,7 +1479,7 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
     rapidjson::Document&    aJsonDOM
 )
 {
-    THROW_COND_GP
+    VERIFY
     (
         !aJsonStr.empty(),
         "Json string is empty"_sv
@@ -1490,11 +1490,11 @@ rapidjson::Document::ConstArray GpJsonToObject::SParseJsonDomVec
     if (aJsonDOM.Parse(std::data(jsonStr), std::size(jsonStr)).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
+        THROW("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     //Check for root element is object
-    THROW_COND_GP
+    VERIFY
     (
         aJsonDOM.IsArray(),
         "Json root element must be an array"_sv
@@ -1509,7 +1509,7 @@ GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
     rapidjson::Document&    aJsonDOM
 )
 {
-    THROW_COND_GP
+    VERIFY
     (
         !aJsonStr.Empty(),
         "Json data is null"_sv
@@ -1519,7 +1519,7 @@ GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
     if (aJsonDOM.ParseInsitu(reinterpret_cast<char*>(aJsonStr.Ptr())).HasParseError())
     {
         const rapidjson::ParseErrorCode parseErrorCode = aJsonDOM.GetParseError();
-        THROW_GP("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
+        THROW("JSON parse error: "_sv + sParseErrorCodes.at(size_t(parseErrorCode)));
     }
 
     if (aJsonDOM.IsObject())
@@ -1530,7 +1530,7 @@ GpJsonToObject::ParseResT   GpJsonToObject::SParseJsonDomInsitu
         return const_cast<const rapidjson::Document&>(aJsonDOM).GetArray();
     } else
     {
-        THROW_GP("Json root element must be object or array"_sv);
+        THROW("Json root element must be object or array"_sv);
     }
 }
 
@@ -1580,7 +1580,7 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
         return modelJson;
     }
 
-    THROW_GP
+    THROW
     (
         fmt::format
         (
@@ -1625,7 +1625,7 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
         }
     }
 
-    THROW_GP
+    THROW
     (
         fmt::format
         (
@@ -1636,7 +1636,7 @@ const GpReflectModel&   GpJsonToObject::SCheckModel
     );
 }
 
-GpReflectModel::C::Opt::CRef    GpJsonToObject::SFindModel (const rapidjson::Document::ConstObject& aJsonObject)
+GpReflectModel::C::Opts::CRef   GpJsonToObject::SFindModel (const rapidjson::Document::ConstObject& aJsonObject)
 {
     std::optional<GpUUID> modelUidJsonOpt = SFindModelUid(aJsonObject);
 

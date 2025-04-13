@@ -3,7 +3,7 @@
 #include <GpJson/GpJsonSerializerFlags.hpp>
 #include <GpCore2/GpReflection/GpReflectObject.hpp>
 
-#define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
+#define RAPIDJSON_ASSERT(X) ::GPlatform::VERIFY(X, "Json processing error"_sv);
 
 GP_WARNING_PUSH()
 
@@ -40,7 +40,7 @@ public:
     static const GpReflectModel&            SCheckModel         (const rapidjson::Document::ConstObject&    aJsonObject,
                                                                  const std::vector<const GpReflectModel*>&  aModelVariants);
 
-    static GpReflectModel::C::Opt::CRef     SFindModel          (const rapidjson::Document::ConstObject&    aJsonObject);
+    static GpReflectModel::C::Opts::CRef    SFindModel          (const rapidjson::Document::ConstObject&    aJsonObject);
 
 private:
     static std::optional<GpUUID>            SFindModelUid       (const rapidjson::Document::ConstObject&    aJsonObject);

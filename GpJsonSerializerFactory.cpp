@@ -1,5 +1,5 @@
-#include "GpJsonSerializerFactory.hpp"
-#include "GpJsonSerializer.hpp"
+#include <GpJson/GpJsonSerializerFactory.hpp>
+#include <GpJson/GpJsonSerializer.hpp>
 
 namespace GPlatform {
 

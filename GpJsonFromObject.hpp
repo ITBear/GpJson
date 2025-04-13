@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GpJsonSerializerFlags.hpp"
+#include <GpJson/GpJsonSerializerFlags.hpp>
 #include <GpCore2/GpUtils/Macro/GpMacroWarnings.hpp>
 #include <GpCore2/GpUtils/Streams/GpByteWriter.hpp>
 
-#define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
+#define RAPIDJSON_ASSERT(X) ::GPlatform::VERIFY(X, "Json processing error"_sv);
 
 GP_WARNING_PUSH()
 

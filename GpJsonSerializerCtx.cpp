@@ -95,13 +95,13 @@ std::optional<std::string>  GpJsonSerializerCtx::FindMemberStr (const std::strin
 
 const void* GpJsonSerializerCtx::RootAsObject (void) const
 {
-    THROW_COND_GP
+    VERIFY
     (
         iJsonRootValue != nullptr,
         "Json root value is null. Call Init first"_sv
     );
 
-    THROW_COND_GP
+    VERIFY
     (
         iIsArray == false,
         "Json root value is array"_sv
@@ -112,13 +112,13 @@ const void* GpJsonSerializerCtx::RootAsObject (void) const
 
 const void* GpJsonSerializerCtx::RootAsArray (void) const
 {
-    THROW_COND_GP
+    VERIFY
     (
         iJsonRootValue != nullptr,
         "Json root value is null. Call Init first"_sv
     );
 
-    THROW_COND_GP
+    VERIFY
     (
         iIsArray == true,
         "Json root value is object"_sv

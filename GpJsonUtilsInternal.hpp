@@ -7,7 +7,7 @@
 
 #include <string_view>
 
-#define RAPIDJSON_ASSERT(X) ::GPlatform::THROW_COND_GP(X, "Json processing error"_sv);
+#define RAPIDJSON_ASSERT(X) ::GPlatform::VERIFY(X, "Json processing error"_sv);
 
 GP_WARNING_PUSH()
 

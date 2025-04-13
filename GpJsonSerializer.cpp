@@ -76,9 +76,9 @@ GpReflectObject::SP GpJsonSerializer::SFromStr
 {
     rapidjson::Document                 jsonDOM;
     rapidjson::Document::ConstObject    jsonObject  = GpJsonToObject::SParseJsonDom(aJsonStr, jsonDOM);
-    GpReflectModel::C::Opt::CRef        modelOpt    = GpJsonToObject::SFindModel(jsonObject);
+    GpReflectModel::C::Opts::CRef       modelOpt    = GpJsonToObject::SFindModel(jsonObject);
 
-    THROW_COND_GP
+    VERIFY
     (
         modelOpt.has_value(),
         "Json member '@' was not found"_sv
@@ -162,9 +162,9 @@ GpReflectObject::C::Vec::SP GpJsonSerializer::SFromStrVec
 
     for (const auto& jsonArrayElement: jsonArray)
     {
-        GpReflectModel::C::Opt::CRef modelOpt = GpJsonToObject::SFindModel(jsonArrayElement.GetObject());
+        GpReflectModel::C::Opts::CRef modelOpt = GpJsonToObject::SFindModel(jsonArrayElement.GetObject());
 
-        THROW_COND_GP
+        VERIFY
         (
             modelOpt.has_value(),
             "Json member '@' was not found"_sv
@@ -248,16 +248,16 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
     rapidjson::Document         jsonDOM;
     GpJsonToObject::ParseResT   parseRes    = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
 
-    THROW_COND_GP
+    VERIFY
     (
         std::holds_alternative<rapidjson::Document::ConstObject>(parseRes),
         "Json root must be object, not array"_sv
     );
 
     rapidjson::Document::ConstObject    jsonObject  = std::get<rapidjson::Document::ConstObject>(parseRes);
-    GpReflectModel::C::Opt::CRef        modelOpt    = GpJsonToObject::SFindModel(jsonObject);
+    GpReflectModel::C::Opts::CRef       modelOpt    = GpJsonToObject::SFindModel(jsonObject);
 
-    THROW_COND_GP
+    VERIFY
     (
         modelOpt.has_value(),
         "Json member '@' was not found"_sv
@@ -281,7 +281,7 @@ GpReflectObject::SP GpJsonSerializer::SFromStrInsitu
     rapidjson::Document         jsonDOM;
     GpJsonToObject::ParseResT   parseRes    = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
 
-    THROW_COND_GP
+    VERIFY
     (
         std::holds_alternative<rapidjson::Document::ConstObject>(parseRes),
         "Json root must be object, not array"_sv
@@ -311,7 +311,7 @@ void    GpJsonSerializer::SFromStrInsitu
     rapidjson::Document         jsonDOM;
     GpJsonToObject::ParseResT   parseRes    = GpJsonToObject::SParseJsonDomInsitu(aJsonStr, jsonDOM);
 
-    THROW_COND_GP
+    VERIFY
     (
         std::holds_alternative<rapidjson::Document::ConstObject>(parseRes),
         "Json root must be object, not array"_sv

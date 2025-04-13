@@ -1,6 +1,5 @@
-#include "GpJsonFromObject.hpp"
-#include "GpJsonUtilsInternal.hpp"
-
+#include <GpJson/GpJsonFromObject.hpp>
+#include <GpJson/GpJsonUtilsInternal.hpp>
 #include <GpCore2/GpReflection/GpReflectObject.hpp>
 #include <GpCore2/GpReflection/GpReflectUtils.hpp>
 #include <GpCore2/GpReflection/GpReflectVisitor.hpp>
@@ -1186,16 +1185,16 @@ void    JVisitor_VisitMapCtx::ProcessMapKey
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
-        THROW_GP("Objects are not supported as map key"_sv);
+        THROW("Objects are not supported as map key"_sv);
     } else if constexpr (type == GpReflectType::OBJECT_SP)
     {
-        THROW_GP("Objects are not supported as map key"_sv);
+        THROW("Objects are not supported as map key"_sv);
     } else if constexpr (type == GpReflectType::ENUM)
     {
-        THROW_GP("Enums are not supported as map key"_sv);
+        THROW("Enums are not supported as map key"_sv);
     } else if constexpr (type == GpReflectType::ENUM_FLAGS)
     {
-        THROW_GP("Enums flags are not supported as map key"_sv);
+        THROW("Enums flags are not supported as map key"_sv);
     } else
     {
         GpThrowCe<GpException>("Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + "'"_sv);
@@ -1260,7 +1259,7 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         _JsonSetStr(aJValOut, s, aJsonAllocator);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
-        THROW_GP("Object are not supported, use arrays of Object::SP instead"_sv);
+        THROW("Object are not supported, use arrays of Object::SP instead"_sv);
     } else if constexpr (type == GpReflectType::OBJECT_SP)
     {
         if (aValue.IsNULL())
@@ -1275,10 +1274,10 @@ void    JVisitor_VisitMapCtx::ProcessMapVal
         }
     } else if constexpr (type == GpReflectType::ENUM)
     {
-        THROW_GP("Enums are not supported"_sv);
+        THROW("Enums are not supported"_sv);
     } else if constexpr (type == GpReflectType::ENUM_FLAGS)
     {
-        THROW_GP("Enums flags are not supported"_sv);
+        THROW("Enums flags are not supported"_sv);
     } else
     {
         GpThrowCe<GpException>("Unknown type '"_sv + GpReflectUtils::SModelName<VT>() + "'"_sv);

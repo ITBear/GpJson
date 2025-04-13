@@ -1,4 +1,4 @@
-#include "GpJsonFromXml.hpp"
+#include <GpJson/GpJsonFromXml.hpp>
 
 #if defined(GP_USE_JSON_FROM_XML)
 
@@ -9,7 +9,7 @@ namespace GPlatform {
 std::string GpJsonFromXml::SJsonFromXml (std::string_view /*aXML*/)
 {
     //TODO: implement
-    THROW_GP_NOT_IMPLEMENTED();
+    THROW_NOT_IMPLEMENTED();
 }
 
 }// namespace GPlatform
