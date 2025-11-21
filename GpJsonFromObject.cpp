@@ -291,7 +291,7 @@ void    JVisitor_VisitValueCtx::BLOB
     JVisitor_VisitCtx&      aCtx
 )
 {
-    const GpBytesArray& blob = aProp.Value_BLOB(aCtx.iDataPtr);
+    const GpByteArray&  blob = aProp.Value_BLOB(aCtx.iDataPtr);
     GpSpanByteR         blobSpan(std::data(blob), std::size(blob));
     const std::string   propVal = GpBase64::SEncode<std::string>(blobSpan, 0);
     _JsonSetStr(iJsonMemberValue, propVal, aCtx.iJsonAllocator);
@@ -691,7 +691,7 @@ void    JVisitor_VisitVecCtx::BLOB
     const auto& container = ValGetterT::BLOB(aCtx.iDataPtr, aProp);
     iJsonArray->Reserve(NumOps::SConvert<rapidjson::SizeType>(std::size(container)), aCtx.iJsonAllocator);
 
-    for (const GpBytesArray& e: container)
+    for (const GpByteArray& e: container)
     {
         const std::string s = GpBase64::SEncode<std::string>(GpSpanByteR(std::data(e), std::size(e)), 0);//StrOps::SFromBytes(e);
         rapidjson::Value jv;

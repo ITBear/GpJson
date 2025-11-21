@@ -340,7 +340,7 @@ void    JVisitor_VisitValueCtx::BLOB
     JVisitor_VisitCtx&      aCtx
 )
 {
-    aProp.Value_BLOB(aCtx.iDataPtr) = GpBase64::SDecode<GpBytesArray>(_JsonValue2SV(iMitVal));
+    aProp.Value_BLOB(aCtx.iDataPtr) = GpBase64::SDecode<GpByteArray>(_JsonValue2SV(iMitVal));
 }
 
 void    JVisitor_VisitValueCtx::Object
@@ -797,7 +797,7 @@ void    JVisitor_VisitVecCtx::BLOB
 
     for (const auto& v: jArray)
     {
-        SEmplaceBack(container, GpBase64::SDecode<GpBytesArray>(_JsonValue2SV(v)));
+        SEmplaceBack(container, GpBase64::SDecode<GpByteArray>(_JsonValue2SV(v)));
     }
 }
 
@@ -1301,7 +1301,7 @@ void    JVisitor_VisitMapCtx::K_BLOB
         container.try_emplace
         (
             ProcessMapKey<KeyT>(_JsonValue2SV(name)),
-            GpBase64::SDecode<GpBytesArray>(_JsonValue2SV(value))
+            GpBase64::SDecode<GpByteArray>(_JsonValue2SV(value))
         );
     }
 }
@@ -1387,7 +1387,7 @@ T   JVisitor_VisitMapCtx::ProcessMapKey (std::string_view aValue)
         return std::string(aValue);
     } else if constexpr (type == GpReflectType::BLOB)
     {
-        return GpBase64::SDecode<GpBytesArray>(aValue);
+        return GpBase64::SDecode<GpByteArray>(aValue);
     } else if constexpr (type == GpReflectType::OBJECT)
     {
         GpThrowCe<GpException>("Objects are not supported as a map key");

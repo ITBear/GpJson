@@ -87,7 +87,7 @@ typename T::SP  GpJsonSerializer::SFromStr
 )
 {
     GpReflectObject::SP obj = SFromStr(aJsonStr, T::SReflectModel(), aFlags);
-    return obj.CastAs<typename T::SP>();
+    return obj.CastToDerived<typename T::SP>();
 }
 
 template <typename T>
@@ -104,7 +104,7 @@ typename T::C::Vec::SP  GpJsonSerializer::SFromStrVec
 
     for (GpReflectObject::SP& e: vec)
     {
-        res.emplace_back(e.CastAs<typename T::SP>());
+        res.emplace_back(e.CastToDerived<typename T::SP>());
     }
 
     return res;
@@ -118,7 +118,7 @@ typename T::SP  GpJsonSerializer::SFromStrInsitu
 )
 {
     GpReflectObject::SP obj = SFromStrInsitu(aJsonStr, T::SReflectModel(), aFlags);
-    return obj.CastAs<typename T::SP>();
+    return obj.CastToDerived<typename T::SP>();
 }
 
 }// namespace GPlatform

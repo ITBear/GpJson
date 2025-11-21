@@ -1,7 +1,10 @@
 #include <GpJson/GpJsonLib.hpp>
+#include <GpCore2/GpUtils/Other/GpLinkedLibsInfo.hpp>
 
-namespace GPlatform {
+GP_STATIC_INITIALIZER_IMPL(GpJson)
+GP_LIB_REGISTRATOR(GpJsonLib)
 
-GP_IMPLEMENT_LIB_REGISTRATOR(GpJsonLib)
-
-}// namespace GPlatform
+void    GpJson_StaticInitializer::OnInitialize (void)
+{
+    GpJsonLib::SRegisterSelf();
+}
